@@ -1,0 +1,110 @@
+name: Pre-commit Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  format-check:
+    runs-on: windows-latest
+    name: Check Code Formatting
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup clang-format
+      run: |
+        choco install llvm --version=17.0.8
+        clang-format --version
+        
+    - name: Check clang-format
+      run: |
+        # Find all C/C++ files and check formatting
+        $files = Get-ChildItem -Recurse -Include "*.c", "*.cpp", "*.h", "*.hpp" | Where-Object { $_.FullName -notmatch "\\build\\" -and $_.FullName -notmatch "\\packages\\" }
+        
+        $formatted_correctly = $true
+        foreach ($file in $files) {
+          Write-Host "Checking format for: $($file.FullName)"
+          
+          # Check if file is formatted correctly
+          $original = Get-Content $file.FullName -Raw
+          $formatted = & clang-format $file.FullName
+          
+          if ($original -ne $formatted) {
+            Write-Host "❌ File is not formatted correctly: $($file.FullName)" -ForegroundColor Red
+            Write-Host "Expected formatting differences:" -ForegroundColor Yellow
+            # Show diff (basic version)
+            $formatted_correctly = $false
+          } else {
+            Write-Host "✅ File is correctly formatted: $($file.FullName)" -ForegroundColor Green
+          }
+        }
+        
+        if (-not $formatted_correctly) {
+          Write-Host "❌ Some files are not formatted correctly. Please run clang-format on the failing files." -ForegroundColor Red
+          exit 1
+        }
+        
+        Write-Host "✅ All files are correctly formatted!" -ForegroundColor Green
+
+  build-check:
+    runs-on: windows-latest
+    name: Build Projects
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      
+    - name: Setup Windows SDK and WDK
+      run: |
+        # Install Windows SDK
+        choco install windows-sdk-10-version-2004-all
+        
+        # Install WDK for kernel mode development
+        choco install windowsdriverkit10
+        
+    - name: Restore NuGet packages
+      run: |
+        nuget restore rootvisor.sln
+        
+    - name: Build UserMode Project
+      run: |
+        Write-Host "Building UserMode C++ project (rootvisor_um)..." -ForegroundColor Blue
+        msbuild rootvisor.sln /p:Configuration=Debug /p:Platform=x64 /t:rootvisor_um /m
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "❌ UserMode project (rootvisor_um) build failed!" -ForegroundColor Red
+          exit 1
+        }
+        
+        Write-Host "✅ UserMode project (rootvisor_um) built successfully!" -ForegroundColor Green
+        
+    - name: Build Kernel Mode Project
+      run: |
+        Write-Host "Building Kernel Mode C project (rootvisor_km)..." -ForegroundColor Blue
+        msbuild rootvisor.sln /p:Configuration=Debug /p:Platform=x64 /t:rootvisor_km /m
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "❌ Kernel Mode project (rootvisor_km) build failed!" -ForegroundColor Red
+          exit 1
+        }
+        
+        Write-Host "✅ Kernel Mode project (rootvisor_km) built successfully!" -ForegroundColor Green
+        
+    - name: Build All Projects
+      run: |
+        Write-Host "Building entire rootvisor solution..." -ForegroundColor Blue
+        msbuild rootvisor.sln /p:Configuration=Debug /p:Platform=x64 /m
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "❌ Rootvisor solution build failed!" -ForegroundColor Red
+          exit 1
+        }
+        
+        Write-Host "✅ Rootvisor solution built successfully!" -ForegroundColor Green
