@@ -15,29 +15,29 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils.cpp">
+    <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="asm.cpp">
+    <ClCompile Include="Asm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="asm\detect_vmx.asm">
+    <MASM Include="asm\DetectVmx.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="asm\get_cpu_vendor.asm">
+    <MASM Include="asm\GetCpuVendor.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="utils.hpp">
+    <ClInclude Include="Utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="asm.hpp">
+    <ClInclude Include="Asm.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

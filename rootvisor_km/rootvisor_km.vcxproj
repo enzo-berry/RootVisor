@@ -108,16 +108,16 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="entry.c" />
-    <ClCompile Include="utils.c" />
+    <ClCompile Include="Entry.c" />
+    <ClCompile Include="Utils.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="asm.h" />
-    <ClInclude Include="macros.h" />
-    <ClInclude Include="utils.h" />
+    <ClInclude Include="Asm.h" />
+    <ClInclude Include="Macros.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="asm\enable_vmx.asm" />
+    <MASM Include="asm\EnableVmx.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

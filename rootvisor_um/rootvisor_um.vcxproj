@@ -129,19 +129,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="asm.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="utils.cpp" />
+    <ClCompile Include="Asm.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="asm\detect_vmx.asm">
+    <MASM Include="asm\DetectVmx.asm">
       <FileType>Document</FileType>
     </MASM>
-    <MASM Include="asm\get_cpu_vendor.asm" />
+    <MASM Include="asm\GetCpuVendor.asm" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="asm.hpp" />
-    <ClInclude Include="utils.hpp" />
+    <ClInclude Include="Asm.hpp" />
+    <ClInclude Include="Utils.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
