@@ -2,9 +2,9 @@ name: Pre-commit Checks
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, master ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, master ]
 
 jobs:
   format-check:
