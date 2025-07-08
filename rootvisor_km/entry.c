@@ -12,7 +12,7 @@ DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
     PRINT("This function is not supported :( !");
 
-    Irp->IoSta tus.Status     = STATUS_SUCCESS;
+    Irp->IoSt a tus.Status    = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
