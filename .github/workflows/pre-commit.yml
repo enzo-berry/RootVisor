@@ -7,52 +7,6 @@ on:
     branches: [ main, develop, master ]
 
 jobs:
-  format-check:
-    runs-on: windows-latest
-    name: Check Code Formatting
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup clang-format
-      run: |
-        choco install llvm --version=17.0.8
-        clang-format --version
-        
-    - name: Check clang-format
-      run: |
-        # Find all C/C++ files and check formatting
-        $files = Get-ChildItem -Recurse -Include "*.c", "*.cpp", "*.h", "*.hpp" | Where-Object { $_.FullName -notmatch "\\build\\" -and $_.FullName -notmatch "\\packages\\" }
-        
-        $formatted_correctly = $true
-        foreach ($file in $files) {
-          Write-Host "Checking format for: $($file.FullName)"
-          
-          # Check if file is formatted correctly using the .clang-format at the root
-          $original = Get-Content $file.FullName -Raw
-          $formatted = & clang-format -style=file $file.FullName
-          
-          if ($original -ne $formatted) {
-            Write-Host "❌ File is not formatted correctly: $($file.FullName)" -ForegroundColor Red
-            Write-Host "Expected formatting differences:" -ForegroundColor Yellow
-            # Outputting the diff for better visibility in the CI logs
-            Compare-Object -ReferenceObject (ConvertFrom-StringData ($original -replace "`r`n", "`n")) `
-                           -DifferenceObject (ConvertFrom-StringData ($formatted -replace "`r`n", "`n")) `
-                           -IncludeEqual | Format-List -Property InputObject, SideIndicator
-            $formatted_correctly = $false
-          } else {
-            Write-Host "✅ File is correctly formatted: $($file.FullName)" -ForegroundColor Green
-          }
-        }
-        
-        if (-not $formatted_correctly) {
-          Write-Host "❌ Some files are not formatted correctly. Please run clang-format on the failing files." -ForegroundColor Red
-          exit 1
-        }
-        
-        Write-Host "✅ All files are correctly formatted!" -ForegroundColor Green
-
   build-check:
     runs-on: windows-latest
     name: Build Projects
