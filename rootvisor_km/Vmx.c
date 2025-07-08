@@ -53,8 +53,10 @@ InitializeVmx()
         return FALSE;
     }
 
+    PAGED_CODE();
+
     ProcessorCounts = KeQueryActiveProcessorCount(0);
-    g_GuestState    = ExAllocatePool2(NonPagedPool, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCounts, POOLTAG);
+    g_GuestState    = ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCounts, POOLTAG);
 
     DbgPrint("\n=====================================================\n");
 
