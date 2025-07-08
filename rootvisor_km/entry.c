@@ -2,8 +2,10 @@
 #include <wdf.h>
 #include <wdm.h>
 
-#include "asm.h"
-#include "macros.h"
+#include "Asm.h"
+#include "Macros.h"
+#include "Utils.h"
+#include "Vmx.h"
 
 NTSTATUS
 DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
@@ -52,7 +54,12 @@ DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    PRINT("DrvClose Not implemented yet :( !");
+    DbgPrint("[*] DrvClose Called !");
+
+    //
+    // executing VMXOFF on every logical processor
+    //
+    TerminateVmx();
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -66,11 +73,12 @@ DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    //
-    // Enabling VMX Operation
-    //
-    AsmEnableVmxOperation();
-    PRINT("VMX Operation Enabled Successfully !");
+    DbgPrint("[*] DrvCreate Called !");
+
+    if ( InitializeVmx() )
+    {
+        DbgPrint("[*] VMX Initiated Successfully.");
+    }
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;

@@ -25,6 +25,9 @@
     <ClCompile Include="Utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Vmx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utils.h">
@@ -34,6 +37,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Asm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Msr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vmx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
