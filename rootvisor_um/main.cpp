@@ -69,6 +69,5 @@ main()
 
     CloseHandle(handle);
 
-
     return 0;
 }
