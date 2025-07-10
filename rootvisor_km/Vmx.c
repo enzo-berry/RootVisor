@@ -248,5 +248,18 @@ AllocateVmcsRegion(IN VIRTUAL_MACHINE_STATE* GuestState)
     return TRUE;
 }
 
-// void
-// RunOnEachLogicalProcessor(void* (*FunctionPtr)());
+void
+RunOnEachLogicalProcessor(void* (*FunctionPtr)())
+{
+    KAFFINITY AffinityMask;
+    for ( size_t i = 0; i < KeQueryActiveProcessors(); i++ )
+    {
+        AffinityMask = PowerOfTwo(i);
+        KeSetSystemAffinityThread(AffinityMask);
+
+        DbgPrint("=====================================================");
+        DbgPrint("Current thread is executing in %d th logical processor.", i);
+
+        FunctionPtr();
+    }
+}
