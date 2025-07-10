@@ -40,6 +40,8 @@ AllocateVmxonRegion(IN VIRTUAL_MACHINE_STATE* GuestState);
 BOOLEAN
 AllocateVmcsRegion(IN VIRTUAL_MACHINE_STATE* GuestState);
 
+void inline AsmEnableVmxOperation(void);
+
 void
 RunOnEachLogicalProcessor(void* (*FunctionPtr)());
 

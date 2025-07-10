@@ -2,7 +2,6 @@
 #include <wdf.h>
 #include <wdm.h>
 
-#include "Asm.h"
 #include "Utils.h"
 #include "Vmx.h"
 

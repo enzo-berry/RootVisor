@@ -3,7 +3,6 @@
 #include <ntddk.h>
 #include <wdf.h>
 
-#include "Asm.h"
 #include "Msr.h"
 #include "Utils.h"
 
