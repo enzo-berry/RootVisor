@@ -114,13 +114,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Asm.h" />
-    <ClInclude Include="Macros.h" />
     <ClInclude Include="Msr.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Vmx.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="asm\EnableVmx.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="rootvisor_km.inf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

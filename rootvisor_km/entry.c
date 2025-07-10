@@ -3,7 +3,6 @@
 #include <wdm.h>
 
 #include "Asm.h"
-#include "Macros.h"
 #include "Utils.h"
 #include "Vmx.h"
 
@@ -12,7 +11,7 @@ DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    PRINT("This function is not supported :( !");
+    DbgPrint("[*] This function is not supported :( !");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -26,7 +25,7 @@ DrvRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    PRINT("Read Not implemented yet :( !");
+    DbgPrint("[*] Read Not implemented yet :( !");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -40,7 +39,7 @@ DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    PRINT("Write Not implemented yet :( !");
+    DbgPrint("[*] Write Not implemented yet :( !");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -92,7 +91,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 {
     UNICODE_STRING DosDeviceName;
 
-    PRINT("DrvUnload Called !");
+    DbgPrint("[*] DrvUnload Called !");
 
     RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\rootvisor");
 
@@ -127,7 +126,7 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     switch ( IrpStack->Parameters.DeviceIoControl.IoControlCode )
     {
     default:
-        PRINT("IoControlCode: %ul", IrpStack->Parameters.DeviceIoControl.IoControlCode);
+        DbgPrint("[*] IoControlCode: %ul", IrpStack->Parameters.DeviceIoControl.IoControlCode);
         break;
     }
 
@@ -146,7 +145,7 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     PDEVICE_OBJECT DeviceObject = NULL;
     UNICODE_STRING DriverName, DosDeviceName;
 
-    PRINT("DriverEntry Called.");
+    DbgPrint("[*] DriverEntry Called.");
 
     RtlInitUnicodeString(&DriverName, L"\\Device\\rootvisor");
     RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\rootvisor");
@@ -167,7 +166,7 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
             DriverObject->MajorFunction[Index] = DrvUnsupported;
         }
 
-        PRINT("Setting Devices major functions.");
+        DbgPrint("[*] Setting Devices major functions.");
         DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DrvClose;
         DriverObject->MajorFunction[IRP_MJ_CREATE]         = DrvCreate;
         DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvIoctlDispatcher;

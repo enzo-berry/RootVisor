@@ -361,7 +361,3 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/rootvisor_km/rootvisor_km.vcxproj.filters
-/rootvisor_km/rootvisor_km.vcxproj
-/rootvisor_km/rootvisor_km.vcxproj
-/rootvisor_km/rootvisor_km.vcxproj.filters
