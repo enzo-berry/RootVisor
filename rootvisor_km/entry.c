@@ -11,7 +11,7 @@ DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    DbgPrint("[*] This function is not supported :( !");
+    DbgPrint("[*] This function is not supported :( !\n");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -25,7 +25,7 @@ DrvRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    DbgPrint("[*] Read Not implemented yet :( !");
+    DbgPrint("[*] Read Not implemented yet :( !\n");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -39,7 +39,7 @@ DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    DbgPrint("[*] Write Not implemented yet :( !");
+    DbgPrint("[*] Write Not implemented yet :( !\n");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -53,7 +53,7 @@ DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    DbgPrint("[*] DrvClose Called !");
+    DbgPrint("[*] DrvClose Called !\n");
 
     //
     // executing VMXOFF on every logical processor
@@ -72,11 +72,11 @@ DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-    DbgPrint("[*] DrvCreate Called !");
+    DbgPrint("[*] DrvCreate Called !\n");
 
     if ( InitializeVmx() )
     {
-        DbgPrint("[*] VMX Initiated Successfully.");
+        DbgPrint("[*] VMX Initiated Successfully.\n");
     }
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
@@ -91,7 +91,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 {
     UNICODE_STRING DosDeviceName;
 
-    DbgPrint("[*] DrvUnload Called !");
+    DbgPrint("[*] DrvUnload Called !\n");
 
     RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\rootvisor");
 
@@ -126,7 +126,7 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     switch ( IrpStack->Parameters.DeviceIoControl.IoControlCode )
     {
     default:
-        DbgPrint("[*] IoControlCode: %ul", IrpStack->Parameters.DeviceIoControl.IoControlCode);
+        DbgPrint("[*] IoControlCode: %ul\n", IrpStack->Parameters.DeviceIoControl.IoControlCode);
         break;
     }
 
@@ -145,7 +145,7 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     PDEVICE_OBJECT DeviceObject = NULL;
     UNICODE_STRING DriverName, DosDeviceName;
 
-    DbgPrint("[*] DriverEntry Called.");
+    DbgPrint("[*] DriverEntry Called.\n");
 
     RtlInitUnicodeString(&DriverName, L"\\Device\\rootvisor");
     RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\rootvisor");
@@ -166,7 +166,7 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
             DriverObject->MajorFunction[Index] = DrvUnsupported;
         }
 
-        DbgPrint("[*] Setting Devices major functions.");
+        DbgPrint("[*] Setting Devices major functions.\n");
         DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DrvClose;
         DriverObject->MajorFunction[IRP_MJ_CREATE]         = DrvCreate;
         DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvIoctlDispatcher;
