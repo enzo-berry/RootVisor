@@ -5,5 +5,7 @@
 extern "C" {
 	bool inline DetectVmxSupport(void);
 	void inline _GetCpuVendor(char* buffer);
-	std::string GetCpuVendor();
 }
+
+std::string
+GetCpuVendor();

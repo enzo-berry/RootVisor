@@ -1,8 +1,8 @@
 #include <Windows.h>
 #include <stdio.h>
 
-#include "asm.hpp"
-#include "utils.hpp"
+#include "Asm.hpp"
+#include "Utils.hpp"
 
 int
 main()
