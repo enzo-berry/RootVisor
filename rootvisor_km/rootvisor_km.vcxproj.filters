@@ -18,20 +18,20 @@
     <ClCompile Include="Entry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Utils.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vmx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Ept.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Memory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Processor.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Msr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -41,12 +41,21 @@
     <ClInclude Include="Ept.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Processor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="asm\EnableVmx.asm">
+    <MASM Include="Main.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="AsmPerformInvept.asm">
+    <MASM Include="VMExitHandler.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>

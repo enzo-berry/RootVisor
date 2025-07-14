@@ -3,6 +3,32 @@
 
 #include <ntddk.h>
 
+#define MAX_NUM_OF_PAGES 0x20000
+#define EPTE_READ 0x1
+#define EPTE_READEXEC 0x5
+#define EPTE_WRITE 0x2
+#define EPTE_EXECUTE 0x4
+#define EPTE_ATTR_MASK 0xFFF
+#define EPTE_MT_SHIFT 3
+#define EPT_LEVELS 4
+
+#define CACHE_TYPE_UC 0x00       /* Uncacheable */
+#define CACHE_TYPE_WC 0x01       /* Write-Combining */
+#define CACHE_TYPE_WT 0x04       /* Writethrough */
+#define CACHE_TYPE_WP 0x05       /* Write-Protect */
+#define CACHE_TYPE_WB 0x06       /* Writeback */
+#define CACHE_TYPE_UC_MINUS 0x07 /* UC minus */
+#define GMTRR_VCNT MTRR_VCNT_MAX
+
+#define MAX_NUM_OF_PAGES 0x20000
+#define EPTE_READ 0x1
+#define EPTE_READEXEC 0x5
+#define EPTE_WRITE 0x2
+#define EPTE_EXECUTE 0x4
+#define EPTE_ATTR_MASK 0xFFF
+#define EPTE_MT_SHIFT 3
+#define EPT_LEVELS 4
+
 // All definitions are based on:
 // Intel® 64 and IA-32 Architectures Software Developer's  Manual Combined Volumes 3A, 3B, 3C, and 3D: System
 // Programming Guide

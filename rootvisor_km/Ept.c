@@ -2,7 +2,10 @@
 
 #include <ntddk.h>
 
+#include "Memory.h"
 #include "Vmx.h"
+
+UINT64 g_VirtualGuestMemoryAddress;
 
 UINT64
 InitializeEptp()

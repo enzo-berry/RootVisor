@@ -1,5 +1,5 @@
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#ifndef _PROCESSOR_H_
+#define _PROCESSOR_H_
 
 #include <devioctl.h>
 #include <ntddk.h>
@@ -10,4 +10,10 @@
 SIZE_T
 PowerOfTwo(SIZE_T Exponent);
 
-#endif // _UTILS_H_
+BOOLEAN
+IsVmxSupported();
+
+void
+RunOnEachLogicalProcessor(void* (*FunctionPtr)());
+
+#endif // _PROCESSOR_H_

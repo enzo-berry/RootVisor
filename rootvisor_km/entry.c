@@ -1,8 +1,8 @@
 #include <ntddk.h>
-#include <wdf.h>
-#include <wdm.h>
 
-#include "Utils.h"
+#include "Common.h"
+#include "Ept.h"
+#include "Processor.h"
 #include "Vmx.h"
 
 NTSTATUS
@@ -73,9 +73,32 @@ DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
     DbgPrint("[*] DrvCreate Called !\n");
 
-    if ( InitializeVmx() )
+    // Starting to Virtualize System.
+    __try
     {
-        DbgPrint("[*] VMX Initiated Successfully.\n");
+        //
+        // Initiating EPTP and VMX
+        //
+        PEPTP EPTP = (PEPTP)InitializeEptp();
+
+        InitiateVmx();
+
+        for ( size_t i = 0; i < (100 * PAGE_SIZE) - 1; i++ )
+        {
+            void* TempAsm = "\xF4";
+            memcpy((void*)(g_VirtualGuestMemoryAddress + i), TempAsm, 1);
+        }
+
+        //
+        // Launching VM for Test (in the 0th virtual processor)
+        //
+        int ProcessorID = 0;
+
+        LaunchVm(ProcessorID, EPTP);
+    }
+    __except (GetExceptionCode())
+    {
+        DbgPrint("[*] Exception occurred in DrvCreate: 0x%08X\n", GetExceptionCode());
     }
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
