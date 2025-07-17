@@ -15,6 +15,7 @@ BOOLEAN
 VmxInitializer()
 {
     int ProcessorCount;
+    KAFFINITY AffinityMask;
 
     if ( !HvIsVmxSupported() )
     {
@@ -27,7 +28,7 @@ VmxInitializer()
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
     // Allocate global variable to hold Guest(s) state
-    GuestState = ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount, POOLTAG);
+    GuestState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount, POOLTAG);
 
     if ( !GuestState )
     {
@@ -39,7 +40,7 @@ VmxInitializer()
     RtlZeroMemory(GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
 
     // Allocate	global variable to hold Ept State
-    EptState = ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(EPT_STATE), POOLTAG);
+    EptState = ExAllocatePoolWithTag(NonPagedPool, sizeof(EPT_STATE), POOLTAG);
 
     if ( !EptState )
     {
@@ -147,13 +148,13 @@ VmxTerminate()
     LogInfo("\tTerminating VMX on logical core %d", CurrentCoreIndex);
 
     // Execute Vmcall to to turn off vmx from Vmx root mode
-    Status = AsmVmxVmcall(VMCALL_VMXOFF, (unsigned long long)NULL, (unsigned long long)NULL, (unsigned long long)NULL);
+    Status = AsmVmxVmcall(VMCALL_VMXOFF, NULL, NULL, NULL);
 
     // Free the destination memory
-    MmFreeContiguousMemory((PVOID)GuestState[CurrentCoreIndex].VmxonRegionVirtualAddress);
-    MmFreeContiguousMemory((PVOID)GuestState[CurrentCoreIndex].VmcsRegionVirtualAddress);
-    ExFreePoolWithTag((PVOID)GuestState[CurrentCoreIndex].VmmStack, POOLTAG);
-    ExFreePoolWithTag((PVOID)GuestState[CurrentCoreIndex].MsrBitmapVirtualAddress, POOLTAG);
+    MmFreeContiguousMemory(GuestState[CurrentCoreIndex].VmxonRegionVirtualAddress);
+    MmFreeContiguousMemory(GuestState[CurrentCoreIndex].VmcsRegionVirtualAddress);
+    ExFreePoolWithTag(GuestState[CurrentCoreIndex].VmmStack, POOLTAG);
+    ExFreePoolWithTag(GuestState[CurrentCoreIndex].MsrBitmapVirtualAddress, POOLTAG);
 
     if ( Status == STATUS_SUCCESS )
     {
@@ -436,7 +437,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     ULONG ExitQualification;
     ULONG Rflags;
     ULONG EcxReg;
-    // ULONG ExitInstructionLength;
+    ULONG ExitInstructionLength;
 
     CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 

@@ -60,7 +60,7 @@ HvVmxInitialize()
     if ( AsmVmxVmcall(VMCALL_TEST, 0x22, 0x333, 0x4444) == STATUS_SUCCESS )
     {
         ///////////////// Test Hook after Vmx is launched /////////////////
-        EptPageHook((PVOID)ExAllocatePool2, TRUE);
+        EptPageHook(ExAllocatePoolWithTag, TRUE);
         ///////////////////////////////////////////////////////////////////
         return TRUE;
     }
@@ -107,8 +107,8 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
     MSR MsrValue = {0};
 
     MsrValue.Content = __readmsr(Msr);
-    Ctl &= MsrValue.Fields.High; /* bit == 0 in high word ==> must be zero */
-    Ctl |= MsrValue.Fields.Low;  /* bit == 1 in low word  ==> must be one  */
+    Ctl &= MsrValue.High; /* bit == 0 in high word ==> must be zero */
+    Ctl |= MsrValue.Low;  /* bit == 1 in low word  ==> must be one  */
     return Ctl;
 }
 
@@ -179,7 +179,7 @@ VOID
 HvHandleCpuid(PGUEST_REGS RegistersState)
 {
     INT32 cpu_info[4];
-    // ULONG Mode = 0;
+    ULONG Mode = 0;
 
 
     // Check for the magic CPUID sequence, and check that it is coming from
@@ -226,7 +226,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
 
 /* Handles Guest Access to control registers */
 VOID
-HvHandleControlRegisterAccess(PGUEST_REGS GuestContext)
+HvHandleControlRegisterAccess(PGUEST_REGS GuestState)
 {
     ULONG ExitQualification = 0;
     PMOV_CR_QUALIFICATION CrExitQualification;
@@ -237,7 +237,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestContext)
 
     CrExitQualification = (PMOV_CR_QUALIFICATION)&ExitQualification;
 
-    RegPtr = (PULONG64)&GuestContext->rax + CrExitQualification->Fields.Register;
+    RegPtr = (PULONG64)&GuestState->rax + CrExitQualification->Fields.Register;
 
     /* Because its RSP and as we didn't save RSP correctly (because of pushes) so we have make it points to the
      * GUEST_RSP */
@@ -352,8 +352,8 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     }
     */
 
-    GuestRegs->rax = msr.Fields.Low;
-    GuestRegs->rdx = msr.Fields.High;
+    GuestRegs->rax = msr.Low;
+    GuestRegs->rdx = msr.High;
 }
 
 /* Handles in the cases when RDMSR causes a Vmexit*/
@@ -367,8 +367,8 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
     if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
     {
     */
-    msr.Fields.Low  = (ULONG)GuestRegs->rax;
-    msr.Fields.High = (ULONG)GuestRegs->rdx;
+    msr.Low  = (ULONG)GuestRegs->rax;
+    msr.High = (ULONG)GuestRegs->rdx;
     __writemsr(GuestRegs->rcx, msr.Content);
     /* } */
 }
@@ -388,22 +388,22 @@ HvSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN Writ
     {
         if ( ReadDetection )
         {
-            SetBit((PVOID)GuestState[ProcessorID].MsrBitmapVirtualAddress, Msr, TRUE);
+            SetBit(GuestState[ProcessorID].MsrBitmapVirtualAddress, Msr, TRUE);
         }
         if ( WriteDetection )
         {
-            SetBit((PVOID)(GuestState[ProcessorID].MsrBitmapVirtualAddress + 2048), Msr, TRUE);
+            SetBit(GuestState[ProcessorID].MsrBitmapVirtualAddress + 2048, Msr, TRUE);
         }
     }
     else if ( (0xC0000000 <= Msr) && (Msr <= 0xC0001FFF) )
     {
         if ( ReadDetection )
         {
-            SetBit((PVOID)(GuestState[ProcessorID].MsrBitmapVirtualAddress + 1024), Msr - 0xC0000000, TRUE);
+            SetBit(GuestState[ProcessorID].MsrBitmapVirtualAddress + 1024, Msr - 0xC0000000, TRUE);
         }
         if ( WriteDetection )
         {
-            SetBit((PVOID)(GuestState[ProcessorID].MsrBitmapVirtualAddress + 3072), Msr - 0xC0000000, TRUE);
+            SetBit(GuestState[ProcessorID].MsrBitmapVirtualAddress + 3072, Msr - 0xC0000000, TRUE);
         }
     }
     else
@@ -417,8 +417,8 @@ HvSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN Writ
 VOID
 HvResumeToNextInstruction()
 {
-    ULONG64 ResumeRIP           = 0;
-    ULONG64 CurrentRIP          = 0;
+    ULONG64 ResumeRIP           = NULL;
+    ULONG64 CurrentRIP          = NULL;
     ULONG ExitInstructionLength = 0;
 
     __vmx_vmread(GUEST_RIP, &CurrentRIP);
@@ -434,14 +434,14 @@ VOID
 HvNotifyAllToInvalidateEpt()
 {
     // Let's notify them all
-    KeIpiGenericCall(HvInvalidateEptByVmcall, (ULONG_PTR)EptState->EptPointer.Flags);
+    KeIpiGenericCall(HvInvalidateEptByVmcall, EptState->EptPointer.Flags);
 }
 
 /* Invalidate EPT using Vmcall (should be called from Vmx non root mode) */
 VOID
-HvInvalidateEptByVmcall(ULONG_PTR Context)
+HvInvalidateEptByVmcall(UINT64 Context)
 {
-    if ( Context == 0 )
+    if ( Context == NULL )
     {
         // We have to invalidate all contexts
         AsmVmxVmcall(VMCALL_INVEPT_ALL_CONTEXT, NULL, NULL, NULL);
@@ -500,7 +500,7 @@ HvTerminateVmx()
     // Free Identity Page Table
     MmFreeContiguousMemory(EptState->EptPageTable);
 
-    // Free GuestContext
+    // Free GuestState
     ExFreePoolWithTag(GuestState, POOLTAG);
 
     // Free EptState

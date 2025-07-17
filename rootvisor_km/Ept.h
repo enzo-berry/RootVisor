@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ntddk.h>
 
 //////////////////////////////////////////////////
 //					Constants					//
@@ -39,6 +38,9 @@
 #define MEMORY_TYPE_WRITE_BACK 0x00000006
 #define MEMORY_TYPE_INVALID 0x000000FF
 
+
+// VMX EPT & VPID Capabilities MSR
+#define MSR_IA32_VMX_EPT_VPID_CAP 0x0000048C
 
 // MTRR Def MSR
 #define MSR_IA32_MTRR_DEF_TYPE 0x000002FF
@@ -225,7 +227,7 @@ typedef union _IA32_VMX_EPT_VPID_CAP_REGISTER
          */
         UINT64 InvvpidSingleContextRetainGlobals : 1;
         UINT64 Reserved9                         : 20;
-    } Fields;
+    };
 
     UINT64 Flags;
 } IA32_VMX_EPT_VPID_CAP_REGISTER, *PIA32_VMX_EPT_VPID_CAP_REGISTER;
@@ -277,7 +279,7 @@ typedef union _PEPT_PML4
          */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved4       : 16;
-    } Fields;
+    };
 
     UINT64 Flags;
 } EPT_PML4, *PEPT_PML4;
@@ -362,7 +364,7 @@ typedef union _EPDPTE_1GB
          * @see Vol3C[25.5.6.1(Convertible EPT Violations)]
          */
         UINT64 SuppressVe : 1;
-    } Fields;
+    };
 
     UINT64 Flags;
 } EPDPTE_1GB, *PEPDPTE_1GB;
@@ -413,7 +415,7 @@ typedef union _EPDPTE
          */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved4       : 16;
-    } Fields;
+    };
 
     UINT64 Flags;
 } EPDPTE, *PEPDPTE;
@@ -498,7 +500,7 @@ typedef union _EPDE_2MB
          * @see Vol3C[25.5.6.1(Convertible EPT Violations)]
          */
         UINT64 SuppressVe : 1;
-    } Fields;
+    };
 
     UINT64 Flags;
 } EPDE_2MB, *PEPDE_2MB;
@@ -549,7 +551,7 @@ typedef union _EPDE
          */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved4       : 16;
-    } Fields;
+    };
 
     UINT64 Flags;
 } EPDE, *PEPDE;
@@ -630,7 +632,7 @@ typedef union _EPTE
          * @see Vol3C[25.5.6.1(Convertible EPT Violations)]
          */
         UINT64 SuppressVe : 1;
-    } Fields;
+    };
 
     UINT64 Flags;
 } EPTE, *PEPTE;
@@ -715,7 +717,7 @@ typedef union _EPTP
          */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved2       : 16;
-    } Fields;
+    };
 
     UINT64 Flags;
 } EPTP, *PEPTP;
@@ -742,7 +744,7 @@ typedef union _IA32_MTRR_DEF_TYPE_REGISTER
          */
         UINT64 MtrrEnable : 1;
         UINT64 Reserved2  : 52;
-    } Fields;
+    };
 
     UINT64 Flags;
 } IA32_MTRR_DEF_TYPE_REGISTER, *PIA32_MTRR_DEF_TYPE_REGISTER;
@@ -784,7 +786,7 @@ typedef union _IA32_MTRR_CAPABILITIES_REGISTER
          */
         UINT64 SmrrSupported : 1;
         UINT64 Reserved2     : 52;
-    } Fields;
+    };
 
     UINT64 Flags;
 } IA32_MTRR_CAPABILITIES_REGISTER, *PIA32_MTRR_CAPABILITIES_REGISTER;
@@ -808,7 +810,7 @@ typedef union _IA32_MTRR_PHYSBASE_REGISTER
          */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved2       : 16;
-    } Fields;
+    };
 
     UINT64 Flags;
 } IA32_MTRR_PHYSBASE_REGISTER, *PIA32_MTRR_PHYSBASE_REGISTER;
@@ -844,7 +846,7 @@ typedef union _IA32_MTRR_PHYSMASK_REGISTER
          */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved2       : 16;
-    } Fields;
+    };
 
     UINT64 Flags;
 } IA32_MTRR_PHYSMASK_REGISTER, *PIA32_MTRR_PHYSMASK_REGISTER;
@@ -888,7 +890,7 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
     {
         PEPT_PML2_ENTRY Entry;
         PEPT_PML2_POINTER Pointer;
-    } Fields;
+    };
 
     /*
      * Linked list entries for each dynamic split
@@ -995,7 +997,7 @@ typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
          */
         UINT64 NmiUnblocking : 1;
         UINT64 Reserved1     : 51;
-    } Fields;
+    };
 
     UINT64 Flags;
 } VMX_EXIT_QUALIFICATION_EPT_VIOLATION, *PVMX_EXIT_QUALIFICATION_EPT_VIOLATION;

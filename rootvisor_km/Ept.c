@@ -18,18 +18,17 @@ EptCheckFeatures()
     VpidRegister.Flags = __readmsr(MSR_IA32_VMX_EPT_VPID_CAP);
     MTRRDefType.Flags  = __readmsr(MSR_IA32_MTRR_DEF_TYPE);
 
-    if ( !VpidRegister.Fields.PageWalkLength4 || !VpidRegister.Fields.MemoryTypeWriteBack ||
-         !VpidRegister.Fields.Pde2MbPages )
+    if ( !VpidRegister.PageWalkLength4 || !VpidRegister.MemoryTypeWriteBack || !VpidRegister.Pde2MbPages )
     {
         return FALSE;
     }
 
-    if ( !VpidRegister.Fields.AdvancedVmexitEptViolationsInformation )
+    if ( !VpidRegister.AdvancedVmexitEptViolationsInformation )
     {
         LogWarning("The processor doesn't report advanced VM-exit information for EPT violations");
     }
 
-    if ( !MTRRDefType.Fields.MtrrEnable )
+    if ( !MTRRDefType.MtrrEnable )
     {
         LogError("Mtrr Dynamic Ranges not supported");
         return FALSE;
@@ -55,31 +54,31 @@ EptBuildMtrrMap()
 
     MTRRCap.Flags = __readmsr(MSR_IA32_MTRR_CAPABILITIES);
 
-    for ( CurrentRegister = 0; CurrentRegister < MTRRCap.Fields.VariableRangeCount; CurrentRegister++ )
+    for ( CurrentRegister = 0; CurrentRegister < MTRRCap.VariableRangeCount; CurrentRegister++ )
     {
         // For each dynamic register pair
         CurrentPhysBase.Flags = __readmsr(MSR_IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
         CurrentPhysMask.Flags = __readmsr(MSR_IA32_MTRR_PHYSMASK0 + (CurrentRegister * 2));
 
         // Is the range enabled?
-        if ( CurrentPhysMask.Fields.Valid )
+        if ( CurrentPhysMask.Valid )
         {
             // We only need to read these once because the ISA dictates that MTRRs are to be synchronized between all
             // processors during BIOS initialization.
             Descriptor = &EptState->MemoryRanges[EptState->NumberOfEnabledMemoryRanges++];
 
             // Calculate the base address in bytes
-            Descriptor->PhysicalBaseAddress = CurrentPhysBase.Fields.PageFrameNumber * PAGE_SIZE;
+            Descriptor->PhysicalBaseAddress = CurrentPhysBase.PageFrameNumber * PAGE_SIZE;
 
             // Calculate the total size of the range
             // The lowest bit of the mask that is set to 1 specifies the size of the range
-            _BitScanForward64(&NumberOfBitsInMask, CurrentPhysMask.Fields.PageFrameNumber * PAGE_SIZE);
+            _BitScanForward64(&NumberOfBitsInMask, CurrentPhysMask.PageFrameNumber * PAGE_SIZE);
 
             // Size of the range in bytes + Base Address
             Descriptor->PhysicalEndAddress = Descriptor->PhysicalBaseAddress + ((1ULL << NumberOfBitsInMask) - 1ULL);
 
             // Memory Type (cacheability attributes)
-            Descriptor->MemoryType = (UCHAR)CurrentPhysBase.Fields.Type;
+            Descriptor->MemoryType = (UCHAR)CurrentPhysBase.Type;
 
             if ( Descriptor->MemoryType == MEMORY_TYPE_WRITE_BACK )
             {
@@ -123,7 +122,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
     PML2 = &EptPageTable->PML2[DirectoryPointer][Directory];
 
     // Check to ensure the page is split
-    if ( PML2->Fields.LargePage )
+    if ( PML2->LargePage )
     {
         return NULL;
     }
@@ -133,7 +132,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
     PML2Pointer = (PEPT_PML2_POINTER)PML2;
 
     // If it is, translate to the PML1 pointer
-    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress((UINT64)(PML2Pointer->Fields.PageFrameNumber * PAGE_SIZE));
+    PML1 = (PEPT_PML1_ENTRY)PhysicalAddressToVirtualAddress((PVOID)(PML2Pointer->PageFrameNumber * PAGE_SIZE));
 
     if ( !PML1 )
     {
@@ -189,7 +188,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SI
 
     // If this large page is not marked a large page, that means it's a pointer already.
     // That page is therefore already split.
-    if ( !TargetEntry->Fields.LargePage )
+    if ( !TargetEntry->LargePage )
     {
         return TRUE;
     }
@@ -208,13 +207,13 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SI
 
 
     // Point back to the entry in the dynamic split for easy reference for which entry that dynamic split is for.
-    NewSplit->Fields.Entry = TargetEntry;
+    NewSplit->Entry = TargetEntry;
 
     // Make a template for RWX
-    EntryTemplate.Flags                = 0;
-    EntryTemplate.Fields.ReadAccess    = 1;
-    EntryTemplate.Fields.WriteAccess   = 1;
-    EntryTemplate.Fields.ExecuteAccess = 1;
+    EntryTemplate.Flags         = 0;
+    EntryTemplate.ReadAccess    = 1;
+    EntryTemplate.WriteAccess   = 1;
+    EntryTemplate.ExecuteAccess = 1;
 
     // Copy the template into all the PML1 entries
     __stosq((SIZE_T*)&NewSplit->PML1[0], EntryTemplate.Flags, VMM_EPT_PML1E_COUNT);
@@ -224,16 +223,16 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SI
     for ( EntryIndex = 0; EntryIndex < VMM_EPT_PML1E_COUNT; EntryIndex++ )
     {
         // Convert the 2MB page frame number to the 4096 page entry number plus the offset into the frame.
-        NewSplit->PML1[EntryIndex].Fields.PageFrameNumber =
-            ((TargetEntry->Fields.PageFrameNumber * SIZE_2_MB) / PAGE_SIZE) + EntryIndex;
+        NewSplit->PML1[EntryIndex].PageFrameNumber =
+            ((TargetEntry->PageFrameNumber * SIZE_2_MB) / PAGE_SIZE) + EntryIndex;
     }
 
     // Allocate a new pointer which will replace the 2MB entry with a pointer to 512 4096 byte entries.
-    NewPointer.Flags                  = 0;
-    NewPointer.Fields.WriteAccess     = 1;
-    NewPointer.Fields.ReadAccess      = 1;
-    NewPointer.Fields.ExecuteAccess   = 1;
-    NewPointer.Fields.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&NewSplit->PML1[0]) / PAGE_SIZE;
+    NewPointer.Flags           = 0;
+    NewPointer.WriteAccess     = 1;
+    NewPointer.ReadAccess      = 1;
+    NewPointer.ExecuteAccess   = 1;
+    NewPointer.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&NewSplit->PML1[0]) / PAGE_SIZE;
 
     // Add our allocation to the linked list of dynamic splits for later deallocation
     InsertHeadList(&EptPageTable->DynamicSplitList, &NewSplit->DynamicSplitList);
@@ -260,7 +259,7 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
 
       ((EntryGroupIndex * VMM_EPT_PML2E_COUNT) + EntryIndex) * 2MB is the actual physical address we're mapping
      */
-    NewEntry->Fields.PageFrameNumber = PageFrameNumber;
+    NewEntry->PageFrameNumber = PageFrameNumber;
 
     // Size of 2MB page * PageFrameNumber == AddressOfPage (physical memory).
     AddressOfPage = PageFrameNumber * SIZE_2_MB;
@@ -273,7 +272,7 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
      */
     if ( PageFrameNumber == 0 )
     {
-        NewEntry->Fields.MemoryType = MEMORY_TYPE_UNCACHEABLE;
+        NewEntry->MemoryType = MEMORY_TYPE_UNCACHEABLE;
         return;
     }
 
@@ -308,7 +307,7 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
     }
 
     // Finally, commit the memory type to the entry.
-    NewEntry->Fields.MemoryType = TargetMemoryType;
+    NewEntry->MemoryType = TargetMemoryType;
 }
 
 /* Allocates page maps and create identity page table */
@@ -323,7 +322,7 @@ EptAllocateAndCreateIdentityPageTable()
 
     // Allocate all paging structures as 4KB aligned pages
     PHYSICAL_ADDRESS MaxSize;
-    // PVOID Output;
+    PVOID Output;
 
     // Allocate address anywhere in the OS's memory space
     MaxSize.QuadPart = MAXULONG64;
@@ -343,11 +342,10 @@ EptAllocateAndCreateIdentityPageTable()
     InitializeListHead(&PageTable->DynamicSplitList);
 
     // Mark the first 512GB PML4 entry as present, which allows us to manage up to 512GB of discrete paging structures.
-    PageTable->PML4[0].Fields.PageFrameNumber =
-        (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML3[0]) / PAGE_SIZE;
-    PageTable->PML4[0].Fields.ReadAccess    = 1;
-    PageTable->PML4[0].Fields.WriteAccess   = 1;
-    PageTable->PML4[0].Fields.ExecuteAccess = 1;
+    PageTable->PML4[0].PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML3[0]) / PAGE_SIZE;
+    PageTable->PML4[0].ReadAccess      = 1;
+    PageTable->PML4[0].WriteAccess     = 1;
+    PageTable->PML4[0].ExecuteAccess   = 1;
 
     /* Now mark each 1GB PML3 entry as RWX and map each to their PML2 entry */
 
@@ -356,9 +354,9 @@ EptAllocateAndCreateIdentityPageTable()
 
     // Set up one 'template' RWX PML3 entry and copy it into each of the 512 PML3 entries
     // Using the same method as SimpleVisor for copying each entry using intrinsics.
-    RWXTemplate.Fields.ReadAccess    = 1;
-    RWXTemplate.Fields.WriteAccess   = 1;
-    RWXTemplate.Fields.ExecuteAccess = 1;
+    RWXTemplate.ReadAccess    = 1;
+    RWXTemplate.WriteAccess   = 1;
+    RWXTemplate.ExecuteAccess = 1;
 
     // Copy the template into each of the 512 PML3 entry slots
     __stosq((SIZE_T*)&PageTable->PML3[0], RWXTemplate.Flags, VMM_EPT_PML3E_COUNT);
@@ -368,19 +366,19 @@ EptAllocateAndCreateIdentityPageTable()
     {
         // Map the 1GB PML3 entry to 512 PML2 (2MB) entries to describe each large page.
         // NOTE: We do *not* manage any PML1 (4096 byte) entries and do not allocate them.
-        PageTable->PML3[EntryIndex].Fields.PageFrameNumber =
+        PageTable->PML3[EntryIndex].PageFrameNumber =
             (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML2[EntryIndex][0]) / PAGE_SIZE;
     }
 
     PML2EntryTemplate.Flags = 0;
 
     // All PML2 entries will be RWX and 'present'
-    PML2EntryTemplate.Fields.WriteAccess   = 1;
-    PML2EntryTemplate.Fields.ReadAccess    = 1;
-    PML2EntryTemplate.Fields.ExecuteAccess = 1;
+    PML2EntryTemplate.WriteAccess   = 1;
+    PML2EntryTemplate.ReadAccess    = 1;
+    PML2EntryTemplate.ExecuteAccess = 1;
 
     // We are using 2MB large pages, so we must mark this 1 here.
-    PML2EntryTemplate.Fields.LargePage = 1;
+    PML2EntryTemplate.LargePage = 1;
 
     /* For each collection of 512 PML2 entries (512 collections * 512 entries per collection), mark it RWX using the
        same template above. This marks the entries as "Present" regardless of if the actual system has memory at this
@@ -430,25 +428,25 @@ EptLogicalProcessorInitialize()
     EPTP.Flags = 0;
 
     // For performance, we let the processor know it can cache the EPT.
-    EPTP.Fields.MemoryType = MEMORY_TYPE_WRITE_BACK;
+    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
 
     // We are not utilizing the 'access' and 'dirty' flag features.
-    EPTP.Fields.EnableAccessAndDirtyFlags = FALSE;
+    EPTP.EnableAccessAndDirtyFlags = FALSE;
 
     /*
       Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
       see Section 28.2.2
      */
-    EPTP.Fields.PageWalkLength = 3;
+    EPTP.PageWalkLength = 3;
 
     // The physical page number of the page table we will be using
-    EPTP.Fields.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
+    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
 
     // We will write the EPTP to the VMCS later
     EptState->EptPointer = EPTP;
 
     ///////////////////////// Example Test /////////////////////////
-    EptPageHook((PVOID)ExAllocatePool2, FALSE);
+    EptPageHook(ExAllocatePoolWithTag, FALSE);
     ////////////////////////////////////////////////////////////////
 
     return TRUE;
@@ -468,7 +466,7 @@ BOOLEAN
 EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, UINT64 GuestPhysicalAddr)
 {
     SIZE_T PhysicalAddress;
-    // PVOID VirtualTarget;
+    PVOID VirtualTarget;
 
     PEPT_PML1_ENTRY TargetPage;
 
@@ -477,7 +475,7 @@ EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualificatio
        This function will return NULL if the physical address was not already mapped in
        virtual memory.
     */
-    PhysicalAddress = (SIZE_T)PAGE_ALIGN(GuestPhysicalAddr);
+    PhysicalAddress = PAGE_ALIGN(GuestPhysicalAddr);
 
     if ( !PhysicalAddress )
     {
@@ -496,10 +494,10 @@ EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualificatio
 
     // If the violation was due to trying to execute a non-executable page, that means that the currently
     // swapped in page is our original RW page. We need to swap in the hooked executable page (fake page)
-    if ( !ViolationQualification.Fields.EptExecutable && ViolationQualification.Fields.ExecuteAccess )
+    if ( !ViolationQualification.EptExecutable && ViolationQualification.ExecuteAccess )
     {
 
-        TargetPage->Fields.ExecuteAccess = 1;
+        TargetPage->ExecuteAccess = 1;
 
         // InveptAllContexts();
         INVEPT_DESCRIPTOR Descriptor;
@@ -511,7 +509,7 @@ EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualificatio
         // Redo the instruction
         GuestState[KeGetCurrentProcessorNumber()].IncrementRip = FALSE;
 
-        LogInfo("Set the Execute Access of a page (PFN = 0x%llx) to 1", TargetPage->Fields.PageFrameNumber);
+        LogInfo("Set the Execute Access of a page (PFN = 0x%llx) to 1", TargetPage->PageFrameNumber);
 
         return TRUE;
     }
@@ -627,9 +625,9 @@ EptVmxRootModePageHook(PVOID TargetFunc, BOOLEAN HasLaunched)
      * fetched from this page to cause an EPT violation exit. This will allow us to swap in the fake page with our
      * hook.
      */
-    OriginalEntry.Fields.ReadAccess    = 1;
-    OriginalEntry.Fields.WriteAccess   = 1;
-    OriginalEntry.Fields.ExecuteAccess = 0;
+    OriginalEntry.ReadAccess    = 1;
+    OriginalEntry.WriteAccess   = 1;
+    OriginalEntry.ExecuteAccess = 0;
 
 
     // Apply the hook to EPT
@@ -661,7 +659,7 @@ EptPageHook(PVOID TargetFunc, BOOLEAN HasLaunched)
     // See whether we allocated anything before (sth like an unused buffer)
     if ( GuestState[LogicalCoreIndex].PreAllocatedMemoryDetails.PreAllocatedBuffer == NULL )
     {
-        PreAllocBuff = ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(VMM_EPT_DYNAMIC_SPLIT), POOLTAG);
+        PreAllocBuff = ExAllocatePoolWithTag(NonPagedPool, sizeof(VMM_EPT_DYNAMIC_SPLIT), POOLTAG);
 
         if ( !PreAllocBuff )
         {
@@ -678,11 +676,7 @@ EptPageHook(PVOID TargetFunc, BOOLEAN HasLaunched)
 
     if ( HasLaunched )
     {
-        if ( AsmVmxVmcall(
-                 VMCALL_EXEC_HOOK_PAGE,
-                 (unsigned long long)TargetFunc,
-                 (unsigned long long)NULL,
-                 (unsigned long long)NULL) == STATUS_SUCCESS )
+        if ( AsmVmxVmcall(VMCALL_EXEC_HOOK_PAGE, TargetFunc, NULL, NULL, NULL) == STATUS_SUCCESS )
         {
             LogInfo("Hook applied from VMX Root Mode");
 

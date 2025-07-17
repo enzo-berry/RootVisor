@@ -17,8 +17,6 @@ VmxDpcBroadcastAllocateVmxonRegions(
     PVOID SystemArgument1,
     PVOID SystemArgument2)
 {
-    UNREFERENCED_PARAMETER(Dpc);
-    UNREFERENCED_PARAMETER(DeferredContext);
 
     int CurrentProcessorNumber = KeGetCurrentProcessorNumber();
 
@@ -86,12 +84,12 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE* CurrentGuestState)
     RtlSecureZeroMemory(VmxonRegion, VmxonSize + ALIGNMENT_PAGE_SIZE);
 
 
-    AlignedVmxonRegion = (UINT64)((ULONG_PTR)(VmxonRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+    AlignedVmxonRegion = (BYTE*)((ULONG_PTR)(VmxonRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
     LogInfo("VMXON Region Address : %llx", AlignedVmxonRegion);
 
     // 4 kb >= buffers are aligned, just a double check to ensure if it's aligned
     AlignedVmxonRegionPhysicalAddr =
-        (UINT64)((ULONG_PTR)(VmxonRegionPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+        (BYTE*)((ULONG_PTR)(VmxonRegionPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
     LogInfo("VMXON Region Physical Address : %llx", AlignedVmxonRegionPhysicalAddr);
 
     // get IA32_VMX_BASIC_MSR RevisionId
@@ -112,7 +110,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE* CurrentGuestState)
     CurrentGuestState->VmxonRegionPhysicalAddress = AlignedVmxonRegionPhysicalAddr;
 
     // We save the allocated buffer (not the aligned buffer) because we want to free it in vmx termination
-    CurrentGuestState->VmxonRegionVirtualAddress = (UINT64)VmxonRegion;
+    CurrentGuestState->VmxonRegionVirtualAddress = VmxonRegion;
 
     return TRUE;
 }
@@ -150,11 +148,11 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE* CurrentGuestState)
 
     VmcsPhysicalAddr = VirtualAddressToPhysicalAddress(VmcsRegion);
 
-    AlignedVmcsRegion = (UINT64)((ULONG_PTR)(VmcsRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+    AlignedVmcsRegion = (BYTE*)((ULONG_PTR)(VmcsRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
     LogInfo("VMCS Region Address : %llx", AlignedVmcsRegion);
 
     AlignedVmcsRegionPhysicalAddr =
-        (UINT64)((ULONG_PTR)(VmcsPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+        (BYTE*)((ULONG_PTR)(VmcsPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
     LogInfo("VMCS Region Physical Address : %llx", AlignedVmcsRegionPhysicalAddr);
 
     // get IA32_VMX_BASIC_MSR RevisionId
@@ -167,27 +165,27 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE* CurrentGuestState)
 
     CurrentGuestState->VmcsRegionPhysicalAddress = AlignedVmcsRegionPhysicalAddr;
     // We save the allocated buffer (not the aligned buffer) because we want to free it in vmx termination
-    CurrentGuestState->VmcsRegionVirtualAddress = (UINT64)VmcsRegion;
+    CurrentGuestState->VmcsRegionVirtualAddress = VmcsRegion;
 
     return TRUE;
 }
 
 /* Allocate VMM Stack */
 BOOLEAN
-VmxAllocateVmmStack(SIZE_T ProcessorID)
+VmxAllocateVmmStack(INT ProcessorID)
 {
     UINT64 VmmStack;
 
     // Allocate stack for the VM Exit Handler.
-    VmmStack                         = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, VMM_STACK_SIZE, POOLTAG);
+    VmmStack                         = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
     GuestState[ProcessorID].VmmStack = VmmStack;
 
-    if ( GuestState[ProcessorID].VmmStack == (UINT64)NULL )
+    if ( GuestState[ProcessorID].VmmStack == NULL )
     {
         LogError("Insufficient memory in allocationg Vmm stack");
         return FALSE;
     }
-    RtlZeroMemory((VOID*)GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
+    RtlZeroMemory(GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
 
     LogInfo("Vmm Stack for logical processor : 0x%llx", GuestState[ProcessorID].VmmStack);
 
@@ -196,21 +194,21 @@ VmxAllocateVmmStack(SIZE_T ProcessorID)
 
 /* Allocate a buffer forr Msr Bitmap */
 BOOLEAN
-VmxAllocateMsrBitmap(SIZE_T ProcessorID)
+VmxAllocateMsrBitmap(INT ProcessorID)
 {
     // Allocate memory for MSRBitMap
     GuestState[ProcessorID].MsrBitmapVirtualAddress =
-        (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, PAGE_SIZE, POOLTAG); // should be aligned
+        ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG); // should be aligned
 
-    if ( (PVOID)GuestState[ProcessorID].MsrBitmapVirtualAddress == NULL )
+    if ( GuestState[ProcessorID].MsrBitmapVirtualAddress == NULL )
     {
         LogError("Insufficient memory in allocationg Msr bitmaps");
         return FALSE;
     }
-    RtlZeroMemory((PVOID)GuestState[ProcessorID].MsrBitmapVirtualAddress, PAGE_SIZE);
+    RtlZeroMemory(GuestState[ProcessorID].MsrBitmapVirtualAddress, PAGE_SIZE);
 
     GuestState[ProcessorID].MsrBitmapPhysicalAddress =
-        VirtualAddressToPhysicalAddress((PVOID)GuestState[ProcessorID].MsrBitmapVirtualAddress);
+        VirtualAddressToPhysicalAddress(GuestState[ProcessorID].MsrBitmapVirtualAddress);
 
     LogInfo("Msr Bitmap Virtual Address : 0x%llx", GuestState[ProcessorID].MsrBitmapVirtualAddress);
     LogInfo("Msr Bitmap Physical Address : 0x%llx", GuestState[ProcessorID].MsrBitmapPhysicalAddress);

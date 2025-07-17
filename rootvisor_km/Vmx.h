@@ -287,7 +287,7 @@ typedef enum _VMCS_FIELDS
     HOST_IA32_SYSENTER_EIP        = 0x00006c12,
     HOST_RSP                      = 0x00006c14,
     HOST_RIP                      = 0x00006c16,
-} VMCS_FIELDS;
+};
 
 //////////////////////////////////////////////////
 //			 Structures & Unions				//
@@ -327,20 +327,23 @@ typedef struct _VIRTUAL_MACHINE_STATE
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 
 
-typedef union _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
+typedef struct _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
 {
-    ULONG64 Flags;
-
-    struct
+    union
     {
-        ULONG64 SizeOfAccess      : 3;
-        ULONG64 AccessType        : 1;
-        ULONG64 StringInstruction : 1;
-        ULONG64 RepPrefixed       : 1;
-        ULONG64 OperandEncoding   : 1;
-        ULONG64 Reserved1         : 9;
-        ULONG64 PortNumber        : 16;
-    } Fields;
+        ULONG64 Flags;
+
+        struct
+        {
+            ULONG64 SizeOfAccess      : 3;
+            ULONG64 AccessType        : 1;
+            ULONG64 StringInstruction : 1;
+            ULONG64 RepPrefixed       : 1;
+            ULONG64 OperandEncoding   : 1;
+            ULONG64 Reserved1         : 9;
+            ULONG64 PortNumber        : 16;
+        };
+    };
 } VMX_EXIT_QUALIFICATION_IO_INSTRUCTION, *PVMX_EXIT_QUALIFICATION_IO_INSTRUCTION;
 
 typedef union _MOV_CR_QUALIFICATION
@@ -378,9 +381,9 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE* CurrentGuestState);
 BOOLEAN
 VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE* CurrentGuestState);
 BOOLEAN
-VmxAllocateVmmStack(SIZE_T ProcessorID);
+VmxAllocateVmmStack(INT ProcessorID);
 BOOLEAN
-VmxAllocateMsrBitmap(SIZE_T ProcessorID);
+VmxAllocateMsrBitmap(INT ProcessorID);
 
 // VMX Instructions
 VOID

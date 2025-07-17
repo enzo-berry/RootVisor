@@ -86,7 +86,7 @@ typedef union _MSR
     {
         ULONG Low;
         ULONG High;
-    } Fields;
+    };
 
     ULONG64 Content;
 } MSR, *PMSR;

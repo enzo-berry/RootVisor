@@ -28,7 +28,7 @@ VmxVmcallHandler(UINT64 VmcallNumber, UINT64 OptionalParam1, UINT64 OptionalPara
     }
     case VMCALL_EXEC_HOOK_PAGE:
     {
-        HookResult = EptVmxRootModePageHook((PVOID)OptionalParam1, TRUE);
+        HookResult = EptVmxRootModePageHook(OptionalParam1, TRUE);
 
         if ( HookResult )
         {

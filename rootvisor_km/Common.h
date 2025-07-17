@@ -1,8 +1,6 @@
-#pragma once
-
-#include <ntddk.h>
 
 #include "Ept.h"
+
 
 //////////////////////////////////////////////////
 //					Enums						//
@@ -18,7 +16,7 @@ typedef enum _SEGMENT_REGISTERS
     GS,
     LDTR,
     TR
-} SEGMENT_REGISTERS;
+};
 
 //////////////////////////////////////////////////
 //					Constants					//
@@ -108,7 +106,7 @@ typedef union _RFLAGS
         unsigned Reserved5 : 1;
         unsigned CF        : 1; // Carry flag [Bit 0]
         unsigned Reserved6 : 32;
-    } Fields;
+    };
 
     ULONG64 Content;
 } RFLAGS, *PRFLAGS;
@@ -178,17 +176,26 @@ typedef enum _LOG_TYPE
     LOG_ERROR
 } LOG_TYPE;
 
-// Defines
-#define LogInfo(format, ...) DbgPrint("[+] Information (%s:%d) | " format "\n", __FUNCTION__, __LINE__, __VA_ARGS__)
+// Function
+VOID
+LogPrintInfo(PCSTR Format);
+VOID
+LogPrintWarning(PCSTR Format);
+VOID
+LogPrintError(PCSTR Format);
 
-#define LogWarning(format, ...) DbgPrint("[-] Warning (%s:%d) | " format "\n", __FUNCTION__, __LINE__, __VA_ARGS__)
+// Defines
+#define LogInfo(format, ...) LogPrintInfo("[+] Information (%s:%d) | " format "\n", __FUNCTION__, __LINE__, __VA_ARGS__)
+
+#define LogWarning(format, ...)                                                                                        \
+    LogPrintWarning("[-] Warning (%s:%d) | " format "\n", __FUNCTION__, __LINE__, __VA_ARGS__)
 
 #define LogError(format, ...)                                                                                          \
-    DbgPrint("[!] Error (%s:%d) | " format "\n", __FUNCTION__, __LINE__, __VA_ARGS__);                                 \
+    LogPrintError("[!] Error (%s:%d) | " format "\n", __FUNCTION__, __LINE__, __VA_ARGS__);                            \
     DbgBreakPoint()
 
 // Log without any prefix
-#define Log(format, ...) DbgPrint(format "\n", __VA_ARGS__)
+#define Log(format, ...) LogPrintInfo(format "\n", __VA_ARGS__)
 
 
 //////////////////////////////////////////////////
@@ -198,8 +205,8 @@ typedef enum _LOG_TYPE
 // Set and Get bits related to MSR Bitmaps Settings
 void
 SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set);
-// void
-// GetBit(PVOID Addr, UINT64 bit);
+void
+GetBit(PVOID Addr, UINT64 bit);
 
 // Run on each logincal Processors functionss
 BOOLEAN
