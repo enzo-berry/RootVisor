@@ -1,4 +1,4 @@
-#include "Ept.h"
+#include "EptRoutines.h"
 
 #include "AsmDefs.h"
 #include "Common.h"
@@ -531,8 +531,6 @@ EptHandleEptViolation(ULONG ExitQualification, UINT64 GuestPhysicalAddr)
 {
 
     VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification;
-
-    DbgBreakPoint();
 
     ViolationQualification.Flags = ExitQualification;
 

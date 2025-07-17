@@ -1,7 +1,7 @@
 #pragma once
 #include <ntddk.h>
 
-#include "Ept.h"
+#include "EptRoutines.h"
 
 
 //////////////////////////////////////////////////

@@ -147,7 +147,7 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
         LogError("Failed to get segment descriptor for selector: 0x%x", Selector);
         return FALSE;
     }
-    
+
     AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
 
     if ( !Selector )
@@ -366,15 +366,10 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     //   where n is the value of ECX & 00001FFFH.
 
     // Validate MSR range before reading
-    if ( (GuestRegs->rcx <= MSR_LOW_RANGE_MAX) || 
+    if ( (GuestRegs->rcx <= MSR_LOW_RANGE_MAX) ||
          ((MSR_HIGH_RANGE_MIN <= GuestRegs->rcx) && (GuestRegs->rcx <= MSR_HIGH_RANGE_MAX)) )
     {
         msr.Content = __readmsr(GuestRegs->rcx);
-    }
-    else
-    {
-        LogWarning("Attempt to read invalid MSR: 0x%llx", GuestRegs->rcx);
-        msr.Content = 0;
     }
 
     GuestRegs->rax = msr.Fields.Low;
@@ -388,16 +383,12 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
     MSR msr = {0};
 
     // Check for sanity of MSR range before writing
-    if ( (GuestRegs->rcx <= MSR_LOW_RANGE_MAX) || 
+    if ( (GuestRegs->rcx <= MSR_LOW_RANGE_MAX) ||
          ((MSR_HIGH_RANGE_MIN <= GuestRegs->rcx) && (GuestRegs->rcx <= MSR_HIGH_RANGE_MAX)) )
     {
         msr.Fields.Low  = (ULONG)GuestRegs->rax;
         msr.Fields.High = (ULONG)GuestRegs->rdx;
         __writemsr(GuestRegs->rcx, msr.Content);
-    }
-    else
-    {
-        LogWarning("Attempt to write to invalid MSR: 0x%llx", GuestRegs->rcx);
     }
 }
 

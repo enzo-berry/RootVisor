@@ -3,7 +3,7 @@
 #include "AsmDefs.h"
 #include "Common.h"
 #include "Dpc.h"
-#include "Ept.h"
+#include "EptRoutines.h"
 #include "GlobalVariables.h"
 #include "HypervisorRoutines.h"
 #include "MsrDefs.h"
@@ -488,7 +488,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
            might think it has VMX feature enabled while it's not available due to our use of hypervisor.	*/
 
         LogWarning("Guest attempted to execute VMX instruction (exit reason: 0x%llx)", ExitReason);
-        
+
         Rflags = 0;
         __vmx_vmread(GUEST_RFLAGS, &Rflags);
         __vmx_vmwrite(GUEST_RFLAGS, Rflags | RFLAGS_CF_MASK); // Set CF=1 to indicate VM instruction failure
@@ -783,13 +783,13 @@ VmxAllocateVmmStack(SIZE_T ProcessorID)
 
     // Allocate stack for the VM Exit Handler.
     VmmStack = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, VMM_STACK_SIZE, POOLTAG);
-    
+
     if ( VmmStack == (UINT64)NULL )
     {
         LogError("Insufficient memory for VMM stack allocation (processor %zu)", ProcessorID);
         return FALSE;
     }
-    
+
     GuestState[ProcessorID].VmmStack = VmmStack;
     RtlZeroMemory((VOID*)GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
 
@@ -841,7 +841,7 @@ VmxCleanup()
         ExFreePoolWithTag(GuestState, POOLTAG);
         GuestState = NULL;
     }
-    
+
     if ( EptState )
     {
         // Cleanup EPT page table if allocated

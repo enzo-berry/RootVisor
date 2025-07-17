@@ -5,50 +5,6 @@
 
 #include "VmxRoutines.h"
 
-
-// This function is deprecated as we want to supporrt more than 32 processors.
-/* Broadcast a function to all logical cores */
-BOOLEAN
-BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
-{
-
-    KIRQL OldIrql;
-
-    KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
-
-    OldIrql = KeRaiseIrqlToDpcLevel();
-
-    Routine(ProcessorNumber);
-
-    KeLowerIrql(OldIrql);
-
-    KeRevertToUserAffinityThread();
-
-    return TRUE;
-}
-
-// Note : Because of deadlock and synchronization problem, no longer use this instead use Vmcall with VMCALL_VMXOFF
-/* Broadcast a 0x41414141 - 0x42424242 message to CPUID Handler of all logical cores in order to turn off VMX in VMX
- * root-mode */
-/*BOOLEAN BroadcastToProcessorsToTerminateVmx(ULONG ProcessorNumber)
-{
-    KIRQL OldIrql;
-
-    KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
-
-    OldIrql = KeRaiseIrqlToDpcLevel();
-
-    INT32 cpu_info[4];
-    __cpuidex(cpu_info, 0x41414141, 0x42424242);
-
-    KeLowerIrql(OldIrql);
-
-    KeRevertToUserAffinityThread();
-
-    return TRUE;
-}
-*/
-
 /* Set Bits for a special address (used on MSR Bitmaps) */
 void
 SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set)
@@ -106,21 +62,4 @@ PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
     PhysicalAddr.QuadPart = PhysicalAddress;
 
     return MmGetVirtualForPhysical(PhysicalAddr);
-}
-
-/* Print logs in different levels */
-VOID
-LogPrintInfo(PCSTR Format)
-{
-    DbgPrint(Format);
-}
-VOID
-LogPrintWarning(PCSTR Format)
-{
-    DbgPrint(Format);
-}
-VOID
-LogPrintError(PCSTR Format)
-{
-    DbgPrint(Format);
 }

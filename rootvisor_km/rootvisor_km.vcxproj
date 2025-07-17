@@ -119,7 +119,7 @@
   <ItemGroup>
     <ClCompile Include="Common.c" />
     <ClCompile Include="Driver.c" />
-    <ClCompile Include="Ept.c" />
+    <ClCompile Include="EptRoutines.c" />
     <ClCompile Include="HypervisorRoutines.c" />
     <ClCompile Include="Invept.c" />
     <ClCompile Include="Vmcall.c" />
@@ -130,7 +130,7 @@
     <ClInclude Include="GlobalVariables.h" />
     <ClInclude Include="Dpc.h" />
     <ClInclude Include="Common.h" />
-    <ClInclude Include="Ept.h" />
+    <ClInclude Include="EptRoutines.h" />
     <ClInclude Include="HypervisorRoutines.h" />
     <ClInclude Include="AsmDefs.h" />
     <ClInclude Include="Invept.h" />

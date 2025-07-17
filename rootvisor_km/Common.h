@@ -3,7 +3,7 @@
 #include <ntddk.h>
 #include <wdf.h>
 
-#include "Ept.h"
+#include "EptRoutines.h"
 
 //////////////////////////////////////////////////
 //					Enums						//
@@ -46,16 +46,16 @@ typedef enum _SEGMENT_REGISTERS
 
 // VMX Operation Constants
 #define VMX_SUCCESS 0
-#define VMX_ERROR_CODE_SUCCESS              0
-#define VMX_ERROR_CODE_FAILED_WITH_STATUS   1
-#define VMX_ERROR_CODE_FAILED               2
+#define VMX_ERROR_CODE_SUCCESS 0
+#define VMX_ERROR_CODE_FAILED_WITH_STATUS 1
+#define VMX_ERROR_CODE_FAILED 2
 
-// CPUID Constants  
+// CPUID Constants
 #define CPUID_VMX_FEATURE_BIT 5
 #define CPUID_VENDOR_STRING_LENGTH 12
 
 // MSR Bitmap Constants
-#define MSR_LOW_RANGE_MAX  0x00001FFF
+#define MSR_LOW_RANGE_MAX 0x00001FFF
 #define MSR_HIGH_RANGE_MIN 0xC0000000
 #define MSR_HIGH_RANGE_MAX 0xC0001FFF
 
@@ -205,10 +205,6 @@ SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set);
 
 BYTE
 GetBit(PVOID Addr, UINT64 bit);
-
-// Run on each logincal Processors functionss
-BOOLEAN
-BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine);
 
 // Address Translations
 UINT64
