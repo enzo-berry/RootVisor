@@ -16,9 +16,9 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 
     LogInfo("Hypervisor From Scratch Loaded :)");
 
-    RtlInitUnicodeString(&DriverName, L"\\Device\\MyHypervisorDevice");
+    RtlInitUnicodeString(&DriverName, L"\\Device\\rootvisor");
 
-    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\MyHypervisorDevice");
+    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\rootvisor");
 
     Ntstatus = IoCreateDevice(
         DriverObject,
@@ -53,7 +53,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 {
     UNICODE_STRING DosDeviceName;
 
-    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\MyHypervisorDevice");
+    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\rootvisor");
     IoDeleteSymbolicLink(&DosDeviceName);
     IoDeleteDevice(DriverObject->DeviceObject);
 
