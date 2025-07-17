@@ -87,12 +87,21 @@
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
     </DriverSign>
+    <ClCompile />
+    <ClCompile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
     </DriverSign>
     <Link />
+    <ClCompile />
+    <ClCompile />
+    <ClCompile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <DriverSign>
@@ -108,23 +117,36 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Entry.c" />
+    <ClCompile Include="Common.c" />
+    <ClCompile Include="Driver.c" />
     <ClCompile Include="Ept.c" />
-    <ClCompile Include="Memory.c" />
-    <ClCompile Include="Processor.c" />
+    <ClCompile Include="HypervisorRoutines.c" />
+    <ClCompile Include="Invept.c" />
+    <ClCompile Include="PrintLog.c" />
+    <ClCompile Include="README.cpp" />
+    <ClCompile Include="Vmcall.c" />
     <ClCompile Include="Vmx.c" />
+    <ClCompile Include="VmxRegions.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GlobalVariables.h" />
+    <ClInclude Include="Dpc.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Ept.h" />
-    <ClInclude Include="Memory.h" />
+    <ClInclude Include="HypervisorRoutines.h" />
+    <ClInclude Include="InlineAsm.h" />
+    <ClInclude Include="Invept.h" />
     <ClInclude Include="Msr.h" />
-    <ClInclude Include="Processor.h" />
+    <ClInclude Include="Vmcall.h" />
     <ClInclude Include="Vmx.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="Main.asm" />
-    <MASM Include="VMExitHandler.asm" />
+    <MASM Include="asm\AsmCommon.asm" />
+    <MASM Include="asm\AsmEpt.asm" />
+    <MASM Include="asm\AsmSegmentRegs.asm" />
+    <MASM Include="asm\AsmVmexitHandler.asm" />
+    <MASM Include="asm\AsmVmxContentextState.asm" />
+    <MASM Include="asm\AsmVmxOperation.asm" />
   </ItemGroup>
   <ItemGroup>
     <Inf Include="rootvisor_km.inf" />

@@ -1,11 +1,11 @@
-#ifndef _MSR_H_
-#define _MSR_H_
-
+#pragma once
 #include <ntddk.h>
 
-//
-// Constants
-//
+
+//////////////////////////////////////////////////
+//				    Constants					//
+//////////////////////////////////////////////////
+
 #define MSR_APIC_BASE 0x01B
 #define MSR_IA32_FEATURE_CONTROL 0x03A
 
@@ -39,7 +39,11 @@
 #define MSR_GS_BASE 0xC0000101
 #define MSR_SHADOW_GS_BASE 0xC0000102
 
-// Structures.
+
+//////////////////////////////////////////////////
+//				    Structures					//
+//////////////////////////////////////////////////
+
 typedef union _IA32_FEATURE_CONTROL_MSR
 {
     ULONG64 All;
@@ -55,6 +59,7 @@ typedef union _IA32_FEATURE_CONTROL_MSR
         ULONG64 Reserved3b         : 32; // [16-63]
     } Fields;
 } IA32_FEATURE_CONTROL_MSR, *PIA32_FEATURE_CONTROL_MSR;
+
 
 typedef union _IA32_VMX_BASIC_MSR
 {
@@ -81,9 +86,7 @@ typedef union _MSR
     {
         ULONG Low;
         ULONG High;
-    } Parts;
+    } Fields;
 
     ULONG64 Content;
 } MSR, *PMSR;
-
-#endif // _MSR_H_

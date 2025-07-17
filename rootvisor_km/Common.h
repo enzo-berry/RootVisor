@@ -1,129 +1,14 @@
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#pragma once
 
 #include <ntddk.h>
 
-//
-// Global variables
-//
-UINT64 g_StackPointerForReturning;
-UINT64 g_BasePointerForReturning;
+#include "Ept.h"
 
-//
-// Drivers
-//
-NTSTATUS
-DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
+//////////////////////////////////////////////////
+//					Enums						//
+//////////////////////////////////////////////////
 
-VOID
-DrvUnload(PDRIVER_OBJECT DriverObject);
-
-NTSTATUS
-DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-
-NTSTATUS
-DrvRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-
-NTSTATUS
-DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-
-NTSTATUS
-DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-
-NTSTATUS
-DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-
-NTSTATUS
-DrvIoctlDispatcher(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-
-//
-// General functions
-//
-VOID
-PrintChars(_In_reads_(CountChars) PCHAR BufferAddress, _In_ size_t CountChars);
-VOID
-PrintIrpInfo(PIRP Irp);
-
-//
-// Segment registers
-//
-USHORT GetCs(VOID);
-USHORT GetDs(VOID);
-USHORT GetEs(VOID);
-USHORT GetSs(VOID);
-USHORT GetFs(VOID);
-USHORT GetGs(VOID);
-USHORT GetLdtr(VOID);
-USHORT GetTr(VOID);
-USHORT GetIdtLimit(VOID);
-USHORT GetGdtLimit(VOID);
-ULONG64 GetRflags(VOID);
-
-typedef struct _CPUID
-{
-    int eax;
-    int ebx;
-    int ecx;
-    int edx;
-} CPUID, *PCPUID;
-
-// IOCTL Codes and Its meanings
-#define IOCTL_TEST 0x1 // In case of testing
-
-//
-// Device type           -- in the "User Defined" range."
-//
-#define SIOCTL_TYPE 40000
-
-//
-// The IOCTL function codes from 0x800 to 0xFFF are for customer use.
-//
-#define IOCTL_SIOCTL_METHOD_IN_DIRECT CTL_CODE(SIOCTL_TYPE, 0x900, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
-
-#define IOCTL_SIOCTL_METHOD_OUT_DIRECT CTL_CODE(SIOCTL_TYPE, 0x901, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
-
-#define IOCTL_SIOCTL_METHOD_BUFFERED CTL_CODE(SIOCTL_TYPE, 0x902, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_SIOCTL_METHOD_NEITHER CTL_CODE(SIOCTL_TYPE, 0x903, METHOD_NEITHER, FILE_ANY_ACCESS)
-
-typedef union SEGMENT_ATTRIBUTES
-{
-    USHORT UCHARs;
-    struct
-    {
-        USHORT TYPE : 4; /* 0;  Bit 40-43 */
-        USHORT S    : 1; /* 4;  Bit 44 */
-        USHORT DPL  : 2; /* 5;  Bit 45-46 */
-        USHORT P    : 1; /* 7;  Bit 47 */
-
-        USHORT AVL : 1; /* 8;  Bit 52 */
-        USHORT L   : 1; /* 9;  Bit 53 */
-        USHORT DB  : 1; /* 10; Bit 54 */
-        USHORT G   : 1; /* 11; Bit 55 */
-        USHORT GAP : 4;
-
-    } Fields;
-} SEGMENT_ATTRIBUTES;
-
-typedef struct SEGMENT_SELECTOR
-{
-    USHORT SEL;
-    SEGMENT_ATTRIBUTES ATTRIBUTES;
-    ULONG32 LIMIT;
-    ULONG64 BASE;
-} SEGMENT_SELECTOR, *PSEGMENT_SELECTOR;
-
-typedef struct _SEGMENT_DESCRIPTOR
-{
-    USHORT LIMIT0;
-    USHORT BASE0;
-    UCHAR BASE1;
-    UCHAR ATTR0;
-    UCHAR LIMIT1ATTR1;
-    UCHAR BASE2;
-} SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
-
-enum SEGREGS
+typedef enum _SEGMENT_REGISTERS
 {
     ES = 0,
     CS,
@@ -133,15 +18,56 @@ enum SEGREGS
     GS,
     LDTR,
     TR
-};
+} SEGMENT_REGISTERS;
+
+//////////////////////////////////////////////////
+//					Constants					//
+//////////////////////////////////////////////////
+
+// Alignment Size
+#define __CPU_INDEX__ KeGetCurrentProcessorNumberEx(NULL)
+
+// Alignment Size
+#define ALIGNMENT_PAGE_SIZE 4096
+
+// Maximum x64 Address
+#define MAXIMUM_ADDRESS 0xffffffffffffffff
+
+// Pool tag
+#define POOLTAG 0x48564653 // [H]yper[V]isor [F]rom [S]cratch (HVFS)
+
+// System and User ring definitions
+#define DPL_USER 3
+#define DPL_SYSTEM 0
+
+// RPL Mask
+#define RPL_MASK 3
+
+// IOCTL Codes and Its meanings
+#define IOCTL_TEST 0x1 // In case of testing
+// Device type
+#define SIOCTL_TYPE 40000
+
+// The IOCTL function codes from 0x800 to 0xFFF are for customer use.
+#define IOCTL_SIOCTL_METHOD_IN_DIRECT CTL_CODE(SIOCTL_TYPE, 0x900, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+
+#define IOCTL_SIOCTL_METHOD_OUT_DIRECT CTL_CODE(SIOCTL_TYPE, 0x901, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
+
+#define IOCTL_SIOCTL_METHOD_BUFFERED CTL_CODE(SIOCTL_TYPE, 0x902, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+#define IOCTL_SIOCTL_METHOD_NEITHER CTL_CODE(SIOCTL_TYPE, 0x903, METHOD_NEITHER, FILE_ANY_ACCESS)
+
+//////////////////////////////////////////////////
+//					 Structures					//
+//////////////////////////////////////////////////
 
 typedef struct _GUEST_REGS
 {
-    ULONG64 rax; // 0x00         // NOT VALID FOR SVM
+    ULONG64 rax; // 0x00
     ULONG64 rcx;
     ULONG64 rdx; // 0x10
     ULONG64 rbx;
-    ULONG64 rsp; // 0x20         // rsp is not stored here on SVM
+    ULONG64 rsp; // 0x20         // rsp is not stored here
     ULONG64 rbp;
     ULONG64 rsi; // 0x30
     ULONG64 rdi;
@@ -185,6 +111,128 @@ typedef union _RFLAGS
     } Fields;
 
     ULONG64 Content;
-} RFLAGS;
+} RFLAGS, *PRFLAGS;
 
-#endif // _COMMON_H_
+typedef union _SEGMENT_ATTRIBUTES
+{
+    USHORT UCHARs;
+    struct
+    {
+        USHORT TYPE : 4; /* 0;  Bit 40-43 */
+        USHORT S    : 1; /* 4;  Bit 44 */
+        USHORT DPL  : 2; /* 5;  Bit 45-46 */
+        USHORT P    : 1; /* 7;  Bit 47 */
+
+        USHORT AVL : 1; /* 8;  Bit 52 */
+        USHORT L   : 1; /* 9;  Bit 53 */
+        USHORT DB  : 1; /* 10; Bit 54 */
+        USHORT G   : 1; /* 11; Bit 55 */
+        USHORT GAP : 4;
+
+    } Fields;
+} SEGMENT_ATTRIBUTES, *PSEGMENT_ATTRIBUTES;
+
+typedef struct _SEGMENT_SELECTOR
+{
+    USHORT SEL;
+    SEGMENT_ATTRIBUTES ATTRIBUTES;
+    ULONG32 LIMIT;
+    ULONG64 BASE;
+} SEGMENT_SELECTOR, *PSEGMENT_SELECTOR;
+
+typedef struct _SEGMENT_DESCRIPTOR
+{
+    USHORT LIMIT0;
+    USHORT BASE0;
+    UCHAR BASE1;
+    UCHAR ATTR0;
+    UCHAR LIMIT1ATTR1;
+    UCHAR BASE2;
+} SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
+
+
+typedef struct _CPUID
+{
+    int eax;
+    int ebx;
+    int ecx;
+    int edx;
+} CPUID, *PCPUID;
+
+//////////////////////////////////////////////////
+//				 Function Types					//
+//////////////////////////////////////////////////
+
+typedef void (*RunOnLogicalCoreFunc)(ULONG ProcessorID);
+
+
+//////////////////////////////////////////////////
+//					Logging						//
+//////////////////////////////////////////////////
+
+// Types
+typedef enum _LOG_TYPE
+{
+    LOG_INFO,
+    LOG_WARNING,
+    LOG_ERROR
+} LOG_TYPE;
+
+// Defines
+#define LogInfo(format, ...) DbgPrint("[+] Information (%s:%d) | " format "\n", __FUNCTION__, __LINE__, __VA_ARGS__)
+
+#define LogWarning(format, ...) DbgPrint("[-] Warning (%s:%d) | " format "\n", __FUNCTION__, __LINE__, __VA_ARGS__)
+
+#define LogError(format, ...)                                                                                          \
+    DbgPrint("[!] Error (%s:%d) | " format "\n", __FUNCTION__, __LINE__, __VA_ARGS__);                                 \
+    DbgBreakPoint()
+
+// Log without any prefix
+#define Log(format, ...) DbgPrint(format "\n", __VA_ARGS__)
+
+
+//////////////////////////////////////////////////
+//			 Function Definitions				//
+//////////////////////////////////////////////////
+
+// Set and Get bits related to MSR Bitmaps Settings
+void
+SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set);
+// void
+// GetBit(PVOID Addr, UINT64 bit);
+
+// Run on each logincal Processors functionss
+BOOLEAN
+BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine);
+
+// Address Translations
+UINT64
+VirtualAddressToPhysicalAddress(PVOID VirtualAddress);
+UINT64
+PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress);
+
+// Math :)
+int
+MathPower(int Base, int Exp);
+
+//////////////////////////////////////////////////
+//			 WDK Major Functions				//
+//////////////////////////////////////////////////
+
+// Load & Unload
+NTSTATUS
+DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
+VOID
+DrvUnload(PDRIVER_OBJECT DriverObject);
+
+// IRP Major Functions
+NTSTATUS
+DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+NTSTATUS
+DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+NTSTATUS
+DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+NTSTATUS
+DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+NTSTATUS
+DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp);
