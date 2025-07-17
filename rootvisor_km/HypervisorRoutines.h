@@ -17,7 +17,7 @@
 BOOLEAN
 HvIsVmxSupported();
 // Initialize Vmx
-BOOLEAN
+NTSTATUS
 HvVmxInitialize();
 
 // Set Guest Selector Registers

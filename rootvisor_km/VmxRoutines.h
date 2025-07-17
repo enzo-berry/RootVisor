@@ -368,6 +368,10 @@ typedef union _MOV_CR_QUALIFICATION
 BOOLEAN
 VmxInitializer();
 
+// Cleanup VMX resources
+VOID
+VmxCleanup();
+
 // Terminate VMX Operation
 BOOLEAN
 VmxTerminate();

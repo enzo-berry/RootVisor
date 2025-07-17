@@ -11,10 +11,9 @@
 #include "VmxRoutines.h"
 
 /* Initialize Vmx */
-BOOLEAN
+NTSTATUS
 HvVmxInitialize()
 {
-
     int LogicalProcessorsCount;
 
     /*** Start Virtualizing Current System ***/
@@ -23,7 +22,8 @@ HvVmxInitialize()
     if ( !VmxInitializer() )
     {
         // there was error somewhere in initializing
-        return FALSE;
+        LogError("VMX initialization failed");
+        return STATUS_UNSUCCESSFUL;
     }
 
     LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
@@ -36,14 +36,16 @@ HvVmxInitialize()
         if ( !VmxAllocateVmmStack(ProcessorID) )
         {
             // Some error in allocating Vmm Stack
-            return FALSE;
+            LogError("Failed to allocate VMM stack for processor %zu", ProcessorID);
+            return STATUS_INSUFFICIENT_RESOURCES;
         }
 
         // Allocating MSR Bit
         if ( !VmxAllocateMsrBitmap(ProcessorID) )
         {
             // Some error in allocating Msr Bitmaps
-            return FALSE;
+            LogError("Failed to allocate MSR bitmap for processor %zu", ProcessorID);
+            return STATUS_INSUFFICIENT_RESOURCES;
         }
 
         /*** This function is deprecated as we want to supporrt more than 32 processors. ***/
@@ -62,11 +64,13 @@ HvVmxInitialize()
         ///////////////// Test Hook after Vmx is launched /////////////////
         EptPageHook((PVOID)ExAllocatePool2, TRUE);
         ///////////////////////////////////////////////////////////////////
-        return TRUE;
+        LogInfo("VMX initialization completed successfully");
+        return STATUS_SUCCESS;
     }
     else
     {
-        return FALSE;
+        LogError("VMX test VMCALL failed");
+        return STATUS_UNSUCCESSFUL;
     }
 }
 
@@ -77,26 +81,31 @@ HvIsVmxSupported()
     CPUID Data                                 = {0};
     IA32_FEATURE_CONTROL_MSR FeatureControlMsr = {0};
 
-    // VMX bit
+    // Check VMX bit in CPUID
     __cpuid((int*)&Data, 1);
-    if ( (Data.ecx & (1 << 5)) == 0 )
+    if ( (Data.ecx & (1 << CPUID_VMX_FEATURE_BIT)) == 0 )
+    {
+        LogError("VMX is not supported by this processor");
         return FALSE;
+    }
 
     FeatureControlMsr.All = __readmsr(MSR_IA32_FEATURE_CONTROL);
 
     // BIOS lock check
     if ( FeatureControlMsr.Fields.Lock == 0 )
     {
+        LogInfo("VMX feature control MSR is not locked, enabling VMX");
         FeatureControlMsr.Fields.Lock        = TRUE;
         FeatureControlMsr.Fields.EnableVmxon = TRUE;
         __writemsr(MSR_IA32_FEATURE_CONTROL, FeatureControlMsr.All);
     }
     else if ( FeatureControlMsr.Fields.EnableVmxon == FALSE )
     {
-        LogError("Intel VMX feature is locked in BIOS");
+        LogError("Intel VMX feature is locked and disabled in BIOS");
         return FALSE;
     }
 
+    LogInfo("VMX is supported and enabled");
     return TRUE;
 }
 
@@ -120,7 +129,25 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
     SEGMENT_SELECTOR SegmentSelector = {0};
     ULONG AccessRights;
 
-    HvGetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
+    // Input validation
+    if ( !GdtBase )
+    {
+        LogError("Invalid GDT base address");
+        return FALSE;
+    }
+
+    if ( SegmentRegister > TR )
+    {
+        LogError("Invalid segment register: %lu", SegmentRegister);
+        return FALSE;
+    }
+
+    if ( !HvGetSegmentDescriptor(&SegmentSelector, Selector, GdtBase) )
+    {
+        LogError("Failed to get segment descriptor for selector: 0x%x", Selector);
+        return FALSE;
+    }
+    
     AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
 
     if ( !Selector )
@@ -329,7 +356,6 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
 {
     MSR msr = {0};
 
-
     // RDMSR. The RDMSR instruction causes a VM exit if any of the following are true:
     //
     // The "use MSR bitmaps" VM-execution control is 0.
@@ -339,38 +365,40 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     // The value of ECX is in the range C0000000H - C0001FFFH and bit n in read bitmap for high MSRs is 1,
     //   where n is the value of ECX & 00001FFFH.
 
-    /*
-    if (((GuestRegs->rcx <= 0x00001FFF)) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
+    // Validate MSR range before reading
+    if ( (GuestRegs->rcx <= MSR_LOW_RANGE_MAX) || 
+         ((MSR_HIGH_RANGE_MIN <= GuestRegs->rcx) && (GuestRegs->rcx <= MSR_HIGH_RANGE_MAX)) )
     {
-    */
-    msr.Content = __readmsr(GuestRegs->rcx);
-    /*
+        msr.Content = __readmsr(GuestRegs->rcx);
     }
     else
     {
+        LogWarning("Attempt to read invalid MSR: 0x%llx", GuestRegs->rcx);
         msr.Content = 0;
     }
-    */
 
     GuestRegs->rax = msr.Fields.Low;
     GuestRegs->rdx = msr.Fields.High;
 }
 
-/* Handles in the cases when RDMSR causes a Vmexit*/
+/* Handles in the cases when WRMSR causes a Vmexit*/
 VOID
 HvHandleMsrWrite(PGUEST_REGS GuestRegs)
 {
     MSR msr = {0};
 
-    // Check for sanity of MSR
-    /*
-    if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
+    // Check for sanity of MSR range before writing
+    if ( (GuestRegs->rcx <= MSR_LOW_RANGE_MAX) || 
+         ((MSR_HIGH_RANGE_MIN <= GuestRegs->rcx) && (GuestRegs->rcx <= MSR_HIGH_RANGE_MAX)) )
     {
-    */
-    msr.Fields.Low  = (ULONG)GuestRegs->rax;
-    msr.Fields.High = (ULONG)GuestRegs->rdx;
-    __writemsr(GuestRegs->rcx, msr.Content);
-    /* } */
+        msr.Fields.Low  = (ULONG)GuestRegs->rax;
+        msr.Fields.High = (ULONG)GuestRegs->rdx;
+        __writemsr(GuestRegs->rcx, msr.Content);
+    }
+    else
+    {
+        LogWarning("Attempt to write to invalid MSR: 0x%llx", GuestRegs->rcx);
+    }
 }
 
 /* Set bits in Msr Bitmap */

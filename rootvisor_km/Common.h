@@ -44,6 +44,24 @@ typedef enum _SEGMENT_REGISTERS
 // RPL Mask
 #define RPL_MASK 3
 
+// VMX Operation Constants
+#define VMX_SUCCESS 0
+#define VMX_ERROR_CODE_SUCCESS              0
+#define VMX_ERROR_CODE_FAILED_WITH_STATUS   1
+#define VMX_ERROR_CODE_FAILED               2
+
+// CPUID Constants  
+#define CPUID_VMX_FEATURE_BIT 5
+#define CPUID_VENDOR_STRING_LENGTH 12
+
+// MSR Bitmap Constants
+#define MSR_LOW_RANGE_MAX  0x00001FFF
+#define MSR_HIGH_RANGE_MIN 0xC0000000
+#define MSR_HIGH_RANGE_MAX 0xC0001FFF
+
+// CF Flag for failure indication
+#define RFLAGS_CF_MASK 0x1
+
 //////////////////////////////////////////////////
 //					 Structures					//
 //////////////////////////////////////////////////

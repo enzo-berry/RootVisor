@@ -31,7 +31,7 @@ VmxInitializer()
 
     if ( !GuestState )
     {
-        LogError("Insufficient memory");
+        LogError("Insufficient memory for guest states");
         return FALSE;
     }
 
@@ -43,7 +43,10 @@ VmxInitializer()
 
     if ( !EptState )
     {
-        LogError("Insufficient memory");
+        LogError("Insufficient memory for EPT state");
+        // Cleanup previously allocated memory
+        ExFreePoolWithTag(GuestState, POOLTAG);
+        GuestState = NULL;
         return FALSE;
     }
 
@@ -481,13 +484,14 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_VMXON:
     case EXIT_REASON_VMLAUNCH:
     {
-
         /* Target guest tries to execute VM Instruction, it probably causes a fatal error or system halt as the system
            might think it has VMX feature enabled while it's not available due to our use of hypervisor.	*/
 
+        LogWarning("Guest attempted to execute VMX instruction (exit reason: 0x%llx)", ExitReason);
+        
         Rflags = 0;
         __vmx_vmread(GUEST_RFLAGS, &Rflags);
-        __vmx_vmwrite(GUEST_RFLAGS, Rflags | 0x1); // cf=1 indicate vm instructions fail
+        __vmx_vmwrite(GUEST_RFLAGS, Rflags | RFLAGS_CF_MASK); // Set CF=1 to indicate VM instruction failure
         break;
     }
 
@@ -770,18 +774,26 @@ VmxAllocateVmmStack(SIZE_T ProcessorID)
 {
     UINT64 VmmStack;
 
-    // Allocate stack for the VM Exit Handler.
-    VmmStack                         = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, VMM_STACK_SIZE, POOLTAG);
-    GuestState[ProcessorID].VmmStack = VmmStack;
-
-    if ( GuestState[ProcessorID].VmmStack == (UINT64)NULL )
+    // Input validation
+    if ( ProcessorID >= KeQueryActiveProcessorCount(0) )
     {
-        LogError("Insufficient memory in allocationg Vmm stack");
+        LogError("Invalid processor ID: %zu", ProcessorID);
         return FALSE;
     }
+
+    // Allocate stack for the VM Exit Handler.
+    VmmStack = (UINT64)ExAllocatePool2(POOL_FLAG_NON_PAGED, VMM_STACK_SIZE, POOLTAG);
+    
+    if ( VmmStack == (UINT64)NULL )
+    {
+        LogError("Insufficient memory for VMM stack allocation (processor %zu)", ProcessorID);
+        return FALSE;
+    }
+    
+    GuestState[ProcessorID].VmmStack = VmmStack;
     RtlZeroMemory((VOID*)GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
 
-    LogInfo("Vmm Stack for logical processor : 0x%llx", GuestState[ProcessorID].VmmStack);
+    LogInfo("VMM Stack allocated for processor %zu at address: 0x%llx", ProcessorID, GuestState[ProcessorID].VmmStack);
 
     return TRUE;
 }
@@ -818,4 +830,26 @@ VmxAllocateMsrBitmap(SIZE_T ProcessorID)
     */
 
     return TRUE;
+}
+
+/* Cleanup VMX resources */
+VOID
+VmxCleanup()
+{
+    if ( GuestState )
+    {
+        ExFreePoolWithTag(GuestState, POOLTAG);
+        GuestState = NULL;
+    }
+    
+    if ( EptState )
+    {
+        // Cleanup EPT page table if allocated
+        if ( EptState->EptPageTable )
+        {
+            MmFreeContiguousMemory(EptState->EptPageTable);
+        }
+        ExFreePoolWithTag(EptState, POOLTAG);
+        EptState = NULL;
+    }
 }
