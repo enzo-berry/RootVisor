@@ -1,7 +1,7 @@
 #pragma once
+#include "Common.h"
 #include "Msr.h"
 #include "Vmx.h"
-
 /*
    This file contains the headers for Hypervisor Routines which have to be called by external codes,
         DO NOT DIRECTLY CALL VMX FUNCTIONS,
@@ -62,7 +62,7 @@ VOID
 HvResumeToNextInstruction();
 // Invalidate EPT using Vmcall (should be called from Vmx non root mode)
 VOID
-HvInvalidateEptByVmcall(UINT64 Context);
+HvInvalidateEptByVmcall(ULONG_PTR Context);
 // The broadcast function which initialize the guest
 VOID
 HvDpcBroadcastInitializeGuest(struct _KDPC* Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);

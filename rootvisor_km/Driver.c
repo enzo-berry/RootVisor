@@ -14,6 +14,8 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     PDEVICE_OBJECT DeviceObject = NULL;
     UNICODE_STRING DriverName, DosDeviceName;
 
+    UNREFERENCED_PARAMETER(RegistryPath);
+
     LogInfo("Hypervisor From Scratch Loaded :)");
 
     RtlInitUnicodeString(&DriverName, L"\\Device\\rootvisor");
@@ -64,6 +66,9 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 NTSTATUS
 DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
+
     LogInfo("Hypervisor From Scratch Started...");
 
     if ( HvVmxInitialize() )
@@ -86,6 +91,8 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     LogWarning("Not implemented yet :(");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
@@ -99,6 +106,8 @@ DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     LogWarning("Not implemented yet :(");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
@@ -112,6 +121,8 @@ DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     LogInfo("Terminating VMX...");
 
     // Terminating Vmx
@@ -130,6 +141,8 @@ DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UNREFERENCED_PARAMETER(DeviceObject);
+
     LogWarning("This function is not supported :(");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
