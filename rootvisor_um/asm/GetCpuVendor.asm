@@ -1,5 +1,5 @@
 .code
-_GetCpuVendor PROC PUBLIC
+GetCpuVendorAsm PROC PUBLIC
     push rbx
     push rdx
     push r8
@@ -20,5 +20,5 @@ _GetCpuVendor PROC PUBLIC
     pop rbx
     
     ret
-_GetCpuVendor ENDP
+GetCpuVendorAsm ENDP
 END

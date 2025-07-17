@@ -1,8 +1,8 @@
 #include <Windows.h>
 #include <stdio.h>
 
-#include "Asm.hpp"
 #include "Utils.hpp"
+#include "Vmx.hpp"
 
 int
 main()
@@ -31,15 +31,16 @@ main()
         printf("[*] VMX is supported\n");
     }
 
+    // This will launch the Hypervisor initialization routine. //
     HANDLE handle = CreateFile(
         L"\\\\.\\rootvisor",
         GENERIC_READ | GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
-        NULL, /// lpSecurityAttirbutes
+        NULL,
         OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
-        NULL); /// lpTemplateFile
-
+        NULL);
+    /////////////////////////////////////////////////////////////
 
     if ( handle == INVALID_HANDLE_VALUE )
     {
@@ -49,24 +50,11 @@ main()
 
     printf("[*] Opened handle to KernelMode device.\n");
 
-    // BOOL Result = DeviceIoControl(handle,
-    //	(DWORD)IOCTL_CUSTOM,
-    //	nullptr,
-    //	0,
-    //	nullptr,
-    //	0,
-    //	nullptr,
-    //	NULL);
-
-    // printf("[*] IOCTL res: %d\n", Result);
-    // In this commit we are not using DeviceIoControl. Only DrvCreate and DrvClose are implemented in the kernel
-    // driver.
-
-
     // Wait for user input before closing the handle
     printf("[*] Press Enter to close the handle and exit.\n");
     getchar();
 
+    // This will launch the devirtualization termination routine. //
     CloseHandle(handle);
 
     return 0;

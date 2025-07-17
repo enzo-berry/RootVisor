@@ -129,7 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Asm.cpp" />
+    <ClCompile Include="Vmx.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
@@ -140,7 +140,7 @@
     <MASM Include="asm\GetCpuVendor.asm" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Asm.hpp" />
+    <ClInclude Include="Vmx.hpp" />
     <ClInclude Include="Utils.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

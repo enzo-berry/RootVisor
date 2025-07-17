@@ -21,7 +21,7 @@
     <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Asm.cpp">
+    <ClCompile Include="Vmx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -37,7 +37,7 @@
     <ClInclude Include="Utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Asm.hpp">
+    <ClInclude Include="Vmx.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,5 +1,5 @@
 .code
-DetectVmxSupport PROC PUBLIC
+DetectVmxSupportAsm PROC PUBLIC
     MOV    EAX, 1
     XOR    ECX, ECX
     CPUID
@@ -17,6 +17,6 @@ VMXSupported:
 EndFunction:
     RET
 
-DetectVmxSupport ENDP
+DetectVmxSupportAsm ENDP
 
 END
