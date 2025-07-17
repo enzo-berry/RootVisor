@@ -1,5 +1,6 @@
 #pragma once
-#include "Vmx.h"
+
+#include "VmxRoutines.h"
 
 
 //////////////////////////////////////////////////

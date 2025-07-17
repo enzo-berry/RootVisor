@@ -1,3 +1,5 @@
+#include "Driver.h"
+
 #include <ntddk.h>
 #include <wdf.h>
 #include <wdm.h>
@@ -16,7 +18,7 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 
     UNREFERENCED_PARAMETER(RegistryPath);
 
-    LogInfo("Hypervisor From Scratch Loaded :)");
+    LogInfo("Rootvisor loaded :)");
 
     RtlInitUnicodeString(&DriverName, L"\\Device\\MyHypervisorDevice");
 
@@ -39,8 +41,6 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
         LogInfo("Setting device major functions");
         DriverObject->MajorFunction[IRP_MJ_CLOSE]  = DrvClose;
         DriverObject->MajorFunction[IRP_MJ_CREATE] = DrvCreate;
-        DriverObject->MajorFunction[IRP_MJ_READ]   = DrvRead;
-        DriverObject->MajorFunction[IRP_MJ_WRITE]  = DrvWrite;
 
         DriverObject->DriverUnload = DrvUnload;
         IoCreateSymbolicLink(&DosDeviceName, &DriverName);
@@ -62,53 +62,22 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     LogWarning("Hypervisor From Scratch's driver unloaded");
 }
 
-/* IRP_MJ_CREATE Function handler*/
+/* IRP_MJ_CREATE Function handler */
 NTSTATUS
 DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
 
-
-    LogInfo("Hypervisor From Scratch Started...");
+    LogInfo("Rootvisor Started...");
 
     if ( HvVmxInitialize() )
     {
-        LogInfo("Hypervisor From Scratch loaded successfully :)");
+        LogInfo("Rootvisor loaded successfully :)");
     }
     else
     {
-        LogError("Hypervisor From Scratch was not loaded :(");
+        LogError("Rootvisor was not loaded :(");
     }
-
-    Irp->IoStatus.Status      = STATUS_SUCCESS;
-    Irp->IoStatus.Information = 0;
-    IoCompleteRequest(Irp, IO_NO_INCREMENT);
-
-    return STATUS_SUCCESS;
-}
-
-/* IRP_MJ_READ Function handler*/
-NTSTATUS
-DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
-{
-    UNREFERENCED_PARAMETER(DeviceObject);
-
-    LogWarning("Not implemented yet :(");
-
-    Irp->IoStatus.Status      = STATUS_SUCCESS;
-    Irp->IoStatus.Information = 0;
-    IoCompleteRequest(Irp, IO_NO_INCREMENT);
-
-    return STATUS_SUCCESS;
-}
-
-/* IRP_MJ_WRITE Function handler*/
-NTSTATUS
-DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
-{
-    UNREFERENCED_PARAMETER(DeviceObject);
-
-    LogWarning("Not implemented yet :(");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;

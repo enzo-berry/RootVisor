@@ -1,7 +1,6 @@
 #pragma once
-#include "Ept.h"
-#include "Vmx.h"
 
+#include "Ept.h"
 
 //////////////////////////////////////////////////
 //                   Structures		   			//

@@ -3,33 +3,8 @@
 #include <ntddk.h>
 #include <wdf.h>
 
-#include "Msr.h"
-#include "Vmx.h"
+#include "VmxRoutines.h"
 
-/* Power function in order to computer address for MSR bitmaps */
-int
-MathPower(int Base, int Exp)
-{
-
-    int result;
-
-    result = 1;
-
-    for ( ;; )
-    {
-        if ( Exp & 1 )
-        {
-            result *= Base;
-        }
-        Exp >>= 1;
-        if ( !Exp )
-        {
-            break;
-        }
-        Base *= Base;
-    }
-    return result;
-}
 
 // This function is deprecated as we want to supporrt more than 32 processors.
 /* Broadcast a function to all logical cores */
@@ -99,7 +74,7 @@ SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set)
 }
 
 /* Get Bits of a special address (used on MSR Bitmaps) */
-void
+BYTE
 GetBit(PVOID Addr, UINT64 bit)
 {
 

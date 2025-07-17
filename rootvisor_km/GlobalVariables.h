@@ -1,7 +1,7 @@
 #pragma once
 #include <ntddk.h>
 
-#include "Vmx.h"
+#include "VmxRoutines.h"
 
 //////////////////////////////////////////////////
 //				Global Variables				//
@@ -11,6 +11,7 @@
 VIRTUAL_MACHINE_STATE* GuestState;
 
 // Save the state and variables related to EPT
+// Global EPT state for all logical cores.
 EPT_STATE* EptState;
 
 // Used for managing CR3_TARGET_VALUEx values

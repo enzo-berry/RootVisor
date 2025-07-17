@@ -402,3 +402,11 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack);
 // Configure VMCS
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE* CurrentGuestState, PVOID GuestStack);
+
+// Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
+BOOLEAN
+VmxDpcBroadcastAllocateVmxonRegions(
+    struct _KDPC* Dpc,
+    PVOID DeferredContext,
+    PVOID SystemArgument1,
+    PVOID SystemArgument2);

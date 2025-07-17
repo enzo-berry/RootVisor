@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ntddk.h>
+#include <wdf.h>
 
 #include "Ept.h"
 
@@ -42,20 +43,6 @@ typedef enum _SEGMENT_REGISTERS
 
 // RPL Mask
 #define RPL_MASK 3
-
-// IOCTL Codes and Its meanings
-#define IOCTL_TEST 0x1 // In case of testing
-// Device type
-#define SIOCTL_TYPE 40000
-
-// The IOCTL function codes from 0x800 to 0xFFF are for customer use.
-#define IOCTL_SIOCTL_METHOD_IN_DIRECT CTL_CODE(SIOCTL_TYPE, 0x900, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
-
-#define IOCTL_SIOCTL_METHOD_OUT_DIRECT CTL_CODE(SIOCTL_TYPE, 0x901, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
-
-#define IOCTL_SIOCTL_METHOD_BUFFERED CTL_CODE(SIOCTL_TYPE, 0x902, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-#define IOCTL_SIOCTL_METHOD_NEITHER CTL_CODE(SIOCTL_TYPE, 0x903, METHOD_NEITHER, FILE_ANY_ACCESS)
 
 //////////////////////////////////////////////////
 //					 Structures					//
@@ -150,7 +137,6 @@ typedef struct _SEGMENT_DESCRIPTOR
     UCHAR BASE2;
 } SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
 
-
 typedef struct _CPUID
 {
     int eax;
@@ -198,8 +184,9 @@ typedef enum _LOG_TYPE
 // Set and Get bits related to MSR Bitmaps Settings
 void
 SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set);
-// void
-// GetBit(PVOID Addr, UINT64 bit);
+
+BYTE
+GetBit(PVOID Addr, UINT64 bit);
 
 // Run on each logincal Processors functionss
 BOOLEAN
@@ -208,31 +195,6 @@ BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine);
 // Address Translations
 UINT64
 VirtualAddressToPhysicalAddress(PVOID VirtualAddress);
+
 UINT64
 PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress);
-
-// Math :)
-int
-MathPower(int Base, int Exp);
-
-//////////////////////////////////////////////////
-//			 WDK Major Functions				//
-//////////////////////////////////////////////////
-
-// Load & Unload
-NTSTATUS
-DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
-VOID
-DrvUnload(PDRIVER_OBJECT DriverObject);
-
-// IRP Major Functions
-NTSTATUS
-DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-NTSTATUS
-DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-NTSTATUS
-DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-NTSTATUS
-DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp);
-NTSTATUS
-DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp);

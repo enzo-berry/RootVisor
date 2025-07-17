@@ -44,7 +44,8 @@
 //				    Structures					//
 //////////////////////////////////////////////////
 
-typedef union _IA32_FEATURE_CONTROL_MSR
+typedef union _IA32_FEATURE_CONTROL_
+
 {
     ULONG64 All;
     struct

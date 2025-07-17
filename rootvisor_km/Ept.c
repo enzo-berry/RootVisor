@@ -1,12 +1,13 @@
 #include "Ept.h"
 
+#include "AsmDefs.h"
 #include "Common.h"
 #include "GlobalVariables.h"
 #include "HypervisorRoutines.h"
-#include "InlineAsm.h"
 #include "Invept.h"
+#include "MsrDefs.h"
 #include "Vmcall.h"
-#include "Vmx.h"
+#include "VmxRoutines.h"
 
 /* Check whether EPT features are present or not */
 BOOLEAN
@@ -40,7 +41,6 @@ EptCheckFeatures()
     return TRUE;
 }
 
-
 /* Build MTRR Map of current physical addresses */
 BOOLEAN
 EptBuildMtrrMap()
@@ -51,7 +51,6 @@ EptBuildMtrrMap()
     PMTRR_RANGE_DESCRIPTOR Descriptor;
     ULONG CurrentRegister;
     ULONG NumberOfBitsInMask;
-
 
     MTRRCap.Flags = __readmsr(MSR_IA32_MTRR_CAPABILITIES);
 
@@ -100,6 +99,7 @@ EptBuildMtrrMap()
     return TRUE;
 }
 
+
 /* Get the PML1 entry for this physical address if the page is split. Return NULL if the address is invalid or the page
  * wasn't already split. */
 PEPT_PML1_ENTRY
@@ -146,7 +146,6 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
     return PML1;
 }
 
-
 /* Get the PML2 entry for this physical address. */
 PEPT_PML2_ENTRY
 EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
@@ -167,6 +166,7 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
     PML2 = &EptPageTable->PML2[DirectoryPointer][Directory];
     return PML2;
 }
+
 
 /* Split 2MB (LargePage) into 4kb pages */
 BOOLEAN
@@ -310,6 +310,7 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
     // Finally, commit the memory type to the entry.
     NewEntry->Fields.MemoryType = TargetMemoryType;
 }
+
 
 /* Allocates page maps and create identity page table */
 PVMM_EPT_PAGE_TABLE
@@ -468,7 +469,6 @@ BOOLEAN
 EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, UINT64 GuestPhysicalAddr)
 {
     SIZE_T PhysicalAddress;
-    // PVOID VirtualTarget;
 
     PEPT_PML1_ENTRY TargetPage;
 
@@ -477,7 +477,7 @@ EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualificatio
        This function will return NULL if the physical address was not already mapped in
        virtual memory.
     */
-    PhysicalAddress = (SIZE_T)PAGE_ALIGN(GuestPhysicalAddr);
+    PhysicalAddress = PAGE_ALIGN(GuestPhysicalAddr);
 
     if ( !PhysicalAddress )
     {
@@ -678,11 +678,7 @@ EptPageHook(PVOID TargetFunc, BOOLEAN HasLaunched)
 
     if ( HasLaunched )
     {
-        if ( AsmVmxVmcall(
-                 VMCALL_EXEC_HOOK_PAGE,
-                 (unsigned long long)TargetFunc,
-                 (unsigned long long)NULL,
-                 (unsigned long long)NULL) == STATUS_SUCCESS )
+        if ( AsmVmxVmcall(VMCALL_EXEC_HOOK_PAGE, TargetFunc, NULL, NULL) == STATUS_SUCCESS )
         {
             LogInfo("Hook applied from VMX Root Mode");
 

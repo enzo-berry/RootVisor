@@ -1,7 +1,8 @@
 #pragma once
+
 #include "Common.h"
-#include "Msr.h"
-#include "Vmx.h"
+#include "VmxRoutines.h"
+
 /*
    This file contains the headers for Hypervisor Routines which have to be called by external codes,
         DO NOT DIRECTLY CALL VMX FUNCTIONS,
@@ -18,13 +19,7 @@ HvIsVmxSupported();
 // Initialize Vmx
 BOOLEAN
 HvVmxInitialize();
-// Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
-BOOLEAN
-VmxDpcBroadcastAllocateVmxonRegions(
-    struct _KDPC* Dpc,
-    PVOID DeferredContext,
-    PVOID SystemArgument1,
-    PVOID SystemArgument2);
+
 // Set Guest Selector Registers
 BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector);

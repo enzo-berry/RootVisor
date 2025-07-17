@@ -122,23 +122,22 @@
     <ClCompile Include="Ept.c" />
     <ClCompile Include="HypervisorRoutines.c" />
     <ClCompile Include="Invept.c" />
-    <ClCompile Include="PrintLog.c" />
-    <ClCompile Include="README.cpp" />
     <ClCompile Include="Vmcall.c" />
-    <ClCompile Include="Vmx.c" />
-    <ClCompile Include="VmxRegions.c" />
+    <ClCompile Include="VmxRoutines.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Driver.h" />
     <ClInclude Include="GlobalVariables.h" />
     <ClInclude Include="Dpc.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Ept.h" />
     <ClInclude Include="HypervisorRoutines.h" />
-    <ClInclude Include="InlineAsm.h" />
+    <ClInclude Include="AsmDefs.h" />
     <ClInclude Include="Invept.h" />
-    <ClInclude Include="Msr.h" />
+    <ClInclude Include="LinkedList.h" />
+    <ClInclude Include="MsrDefs.h" />
     <ClInclude Include="Vmcall.h" />
-    <ClInclude Include="Vmx.h" />
+    <ClInclude Include="VmxRoutines.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="asm\AsmCommon.asm" />

@@ -18,7 +18,7 @@
     <ClCompile Include="Driver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vmx.c">
+    <ClCompile Include="VmxRoutines.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Ept.c">
@@ -33,24 +33,15 @@
     <ClCompile Include="Invept.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PrintLog.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vmcall.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VmxRegions.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="README.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Msr.h">
+    <ClInclude Include="MsrDefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vmx.h">
+    <ClInclude Include="VmxRoutines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Ept.h">
@@ -68,13 +59,19 @@
     <ClInclude Include="HypervisorRoutines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="InlineAsm.h">
+    <ClInclude Include="AsmDefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Invept.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vmcall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Driver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkedList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

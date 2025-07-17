@@ -1,14 +1,14 @@
 //  This file describe the routines in Hypervisor
 #include "HypervisorRoutines.h"
 
+#include "AsmDefs.h"
 #include "Common.h"
 #include "Dpc.h"
 #include "GlobalVariables.h"
-#include "InlineAsm.h"
 #include "Invept.h"
-#include "Msr.h"
+#include "MsrDefs.h"
 #include "Vmcall.h"
-#include "Vmx.h"
+#include "VmxRoutines.h"
 
 /* Initialize Vmx */
 BOOLEAN

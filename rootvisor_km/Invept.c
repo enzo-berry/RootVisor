@@ -1,6 +1,6 @@
 #include "Invept.h"
 
-#include "InlineAsm.h"
+#include "AsmDefs.h"
 
 /* Invoke the Invept instruction */
 unsigned char

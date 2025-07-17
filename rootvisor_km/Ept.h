@@ -2,6 +2,8 @@
 
 #include <ntddk.h>
 
+#include "LinkedList.h"
+
 //////////////////////////////////////////////////
 //					Constants					//
 //////////////////////////////////////////////////
@@ -75,36 +77,6 @@
 
 // Index of the 4th paging structure (512GB)
 #define ADDRMASK_EPT_PML4_INDEX(_VAR_) ((_VAR_ & 0xFF8000000000ULL) >> 39)
-
-/**
- * Linked list for-each macro for traversing LIST_ENTRY structures.
- *
- * _LISTHEAD_ is a pointer to the struct that the list head belongs to.
- * _LISTHEAD_NAME_ is the name of the variable which contains the list head. Should match the same name as the list
- * entry struct member in the actual record. _TARGET_TYPE_ is the type name of the struct of each item in the list
- * _TARGET_NAME_ is the name which will contain the pointer to the item each iteration
- *
- * Example:
- * FOR_EACH_LIST_ENTRY(ProcessorContext->EptPageTable, DynamicSplitList, VMM_EPT_DYNAMIC_SPLIT, Split)
- * 		OsFreeNonpagedMemory(Split);
- * }
- *
- * ProcessorContext->EptPageTable->DynamicSplitList is the head of the list.
- * VMM_EPT_DYNAMIC_SPLIT is the struct of each item in the list.
- * Split is the name of the local variable which will hold the pointer to the item.
- */
-#define FOR_EACH_LIST_ENTRY(_LISTHEAD_, _LISTHEAD_NAME_, _TARGET_TYPE_, _TARGET_NAME_)                                 \
-    for ( PLIST_ENTRY Entry = _LISTHEAD_->_LISTHEAD_NAME_.Flink; Entry != &_LISTHEAD_->_LISTHEAD_NAME_;                \
-          Entry             = Entry->Flink )                                                                           \
-    {                                                                                                                  \
-        P##_TARGET_TYPE_ _TARGET_NAME_ = CONTAINING_RECORD(Entry, _TARGET_TYPE_, _LISTHEAD_NAME_);
-
-/**
- * The braces for the block are messy due to the need to define a local variable in the for loop scope.
- * Therefore, this macro just ends the for each block without messing up code editors trying to detect
- * the block indent level.
- */
-#define FOR_EACH_LIST_ENTRY_END() }
 
 
 //////////////////////////////////////////////////
@@ -863,7 +835,6 @@ typedef struct _MTRR_RANGE_DESCRIPTOR
     UCHAR MemoryType;
 } MTRR_RANGE_DESCRIPTOR, *PMTRR_RANGE_DESCRIPTOR;
 
-
 typedef struct _EPT_STATE
 {
     MTRR_RANGE_DESCRIPTOR MemoryRanges[9]; // Physical memory ranges described by the BIOS in the MTRRs. Used to build
@@ -896,7 +867,6 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
     LIST_ENTRY DynamicSplitList;
 
 } VMM_EPT_DYNAMIC_SPLIT, *PVMM_EPT_DYNAMIC_SPLIT;
-
 
 typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
 {

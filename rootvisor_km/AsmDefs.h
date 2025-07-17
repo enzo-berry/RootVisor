@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ntddk.h>
 
 // ====================  Vmx Operations ====================
 // File : AsmVmxOperation.asm
