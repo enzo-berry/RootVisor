@@ -15,4 +15,4 @@ This project is heavily based on and inspired by Sina Karvandi's amazing tutoria
 - Reference repository: [SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)
 
 ## Contributors
-Mathis (https://github.com/mathis-bertrand)
+Me & Mathis (https://github.com/mathis-bertrand)
