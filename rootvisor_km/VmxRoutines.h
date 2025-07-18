@@ -1,8 +1,8 @@
 #pragma once
+
 #include <ntddk.h>
 
 #include "EptRoutines.h"
-
 
 //////////////////////////////////////////////////
 //					Constants					//

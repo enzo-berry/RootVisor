@@ -9,7 +9,6 @@
 #include "MsrDefs.h"
 #include "Vmcall.h"
 
-
 /* Initialize VMX Operation */
 BOOLEAN
 VmxInitializer()

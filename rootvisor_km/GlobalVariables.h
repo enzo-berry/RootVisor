@@ -1,4 +1,5 @@
 #pragma once
+
 #include <ntddk.h>
 
 #include "VmxRoutines.h"

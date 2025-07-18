@@ -1,13 +1,13 @@
-#pragma once
-
-#include "Common.h"
-#include "VmxRoutines.h"
-
 /*
    This file contains the headers for Hypervisor Routines which have to be called by external codes,
         DO NOT DIRECTLY CALL VMX FUNCTIONS,
             instead use these routines.
 */
+
+#pragma once
+
+#include "Common.h"
+#include "VmxRoutines.h"
 
 //////////////////////////////////////////////////
 //					Functions					//
