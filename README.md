@@ -14,6 +14,5 @@ This project is heavily based on and inspired by Sina Karvandi's amazing tutoria
 - Tutorials: [Hypervisor From Scratch](https://rayanfam.com/tutorials/)
 - Reference repository: [SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)
 
-## Getting Started
-
-Clone the repository and check the source code to understand the basic setup and logic. For in-depth explanations, refer to the linked tutorials above.
+## Contributors
+Mathis (https://github.com/mathis-bertrand)
