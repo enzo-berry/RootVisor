@@ -831,25 +831,3 @@ VmxAllocateMsrBitmap(SIZE_T ProcessorID)
 
     return TRUE;
 }
-
-/* Cleanup VMX resources */
-VOID
-VmxCleanup()
-{
-    if ( GuestState )
-    {
-        ExFreePoolWithTag(GuestState, POOLTAG);
-        GuestState = NULL;
-    }
-
-    if ( EptState )
-    {
-        // Cleanup EPT page table if allocated
-        if ( EptState->EptPageTable )
-        {
-            MmFreeContiguousMemory(EptState->EptPageTable);
-        }
-        ExFreePoolWithTag(EptState, POOLTAG);
-        EptState = NULL;
-    }
-}
