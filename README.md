@@ -4,9 +4,8 @@ RootVisor is a minimalist HyperVisor project inspired by Sina Karvandi's "Hyperv
 
 ## Features
 
-- Basic hypervisor functionality
-- Educational code structure for learning
-- Reference implementation for custom virtualization solutions
+- Basic hypervisor functionality.
+- A simple POC for an EPT hook.
 
 ## Credits
 
